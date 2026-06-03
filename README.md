@@ -90,11 +90,25 @@ for p in predictions:
         p.distance_label,
         format_time(p.predicted_time_sec),
         format_pace(p.pace_min_per_mi),
-        f"(residual {p.residual_sec:+.0f}s)",
+        f"conf {p.confidence}",
+        f"{format_time(p.interval_low_sec)}–{format_time(p.interval_high_sec)}",
     )
 ```
 
-The ML layer learns athlete-specific corrections from time-series holdouts on top of the VDOT/Riegel baseline.
+## Backtest evaluation
+
+```python
+from race_predictor.data import load_runs
+from race_predictor.evaluate import run_backtest, backtest_to_dict
+
+runs = load_runs("data/activities.csv")
+result = run_backtest(runs)
+for m in result.metrics:
+    if m.count:
+        print(m.label, f"MAPE {m.mape:.1%}", f"±5% {m.within_5_pct:.0%}", f"80% cov {m.interval_coverage_80:.0%}")
+```
+
+Confidence (0–100) combines data sufficiency, model agreement, backtest reliability, and extrapolation penalty. Each prediction includes an 80% interval.
 
 ## Tests
 

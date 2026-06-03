@@ -45,6 +45,11 @@ class TrainedModel:
     residual_model: object
     feature_names: list[str]
     default_temp_f: float
+    residual_stats: dict[str, dict[str, float]] | None = None
+
+    def __post_init__(self) -> None:
+        if self.residual_stats is None:
+            self.residual_stats = {}
 
 
 @dataclass(frozen=True)
@@ -57,3 +62,6 @@ class RacePrediction:
     vdot_time_sec: float | None
     riegel_time_sec: float | None
     pace_min_per_mi: float
+    interval_low_sec: float
+    interval_high_sec: float
+    confidence: int

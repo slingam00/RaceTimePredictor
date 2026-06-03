@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from race_predictor.constants import DEFAULT_TEMP_F, RACE_DISTANCES_MI
+from race_predictor.confidence.scoring import confidence_score, prediction_interval
 from race_predictor.data.models import RacePrediction, Run, TrainedModel
 from race_predictor.features.fitness import compute_fitness_features
 from race_predictor.models.baseline import predict_baseline
@@ -62,6 +63,15 @@ def predict_race(
     )
     predicted = max(0.0, baseline.predicted_time_sec + residual)
     pace = (predicted / 60.0) / baseline.distance_mi
+    low, high = prediction_interval(model, distance_label, predicted, features)
+    conf = confidence_score(
+        model,
+        distance_label,
+        features,
+        baseline.vdot_time_sec,
+        baseline.riegel_time_sec,
+        predicted,
+    )
 
     return RacePrediction(
         distance_label=distance_label,
@@ -72,6 +82,9 @@ def predict_race(
         vdot_time_sec=baseline.vdot_time_sec,
         riegel_time_sec=baseline.riegel_time_sec,
         pace_min_per_mi=pace,
+        interval_low_sec=low,
+        interval_high_sec=high,
+        confidence=conf,
     )
 
 

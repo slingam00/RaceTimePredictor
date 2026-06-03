@@ -92,8 +92,33 @@ def build_training_rows(runs: list[Run]) -> tuple[np.ndarray, np.ndarray, list[d
     return np.vstack(xs), np.array(ys), meta
 
 
+def _residual_stats(
+    meta: list[dict],
+    predicted_residuals: np.ndarray,
+) -> dict[str, dict[str, float]]:
+    stats: dict[str, list[float]] = {}
+    for i, row in enumerate(meta):
+        actual = row["actual_sec"]
+        baseline = row["baseline_sec"]
+        predicted = baseline + predicted_residuals[i]
+        if actual <= 0 or predicted <= 0:
+            continue
+        label = row["distance_label"]
+        stats.setdefault(label, []).append(abs(actual - predicted) / actual)
+
+    result: dict[str, dict[str, float]] = {}
+    for label, errors in stats.items():
+        arr = np.array(errors)
+        result[label] = {
+            "mape": float(np.mean(arr)),
+            "count": float(len(arr)),
+            "p80": float(np.percentile(arr, 80)),
+        }
+    return result
+
+
 def train_residual_model(runs: list[Run]) -> TrainedModel:
-    x, y, _meta = build_training_rows(runs)
+    x, y, meta = build_training_rows(runs)
     default_temp = _default_temp_f(runs)
 
     if len(y) < 5:
@@ -103,6 +128,7 @@ def train_residual_model(runs: list[Run]) -> TrainedModel:
             residual_model=model,
             feature_names=FEATURE_NAMES.copy(),
             default_temp_f=default_temp,
+            residual_stats={},
         )
 
     model = GradientBoostingRegressor(
@@ -113,11 +139,14 @@ def train_residual_model(runs: list[Run]) -> TrainedModel:
         random_state=42,
     )
     model.fit(x, y)
+    preds = model.predict(x)
+    stats = _residual_stats(meta, preds)
 
     return TrainedModel(
         residual_model=model,
         feature_names=FEATURE_NAMES.copy(),
         default_temp_f=default_temp,
+        residual_stats=stats,
     )
 
 
