@@ -15,7 +15,7 @@ pip install -e ".[dev]"
 ```
 src/race_predictor/
 ├── data/        # Strava CSV loader, run normalization
-├── features/    # 10-week window + fitness index
+├── features/    # Trailing fitness index (10 wk for 5K/10K, 12 wk for Half/Marathon)
 ├── models/      # VDOT, Riegel, ML corrector
 ├── confidence/  # Intervals and scores
 └── evaluate/    # Backtest harness
@@ -34,6 +34,17 @@ print(runs[-1].distance_mi, runs[-1].pace_min_per_mi)
 ```
 
 All distances are in miles, elevation in feet, temperature in °F, pace in min/mile.
+
+## Fitness features
+
+```python
+from race_predictor.data import load_runs
+from race_predictor.features import compute_fitness_features
+
+runs = load_runs("data/activities.csv")
+features = compute_fitness_features(runs, runs[-1].date, "Marathon")
+# 12-week window for Half/Marathon; 10-week for 5K/10K
+```
 
 ## Tests
 
