@@ -23,6 +23,18 @@ src/race_predictor/
 
 Place your Strava bulk export in `data/`.
 
+## Data loader
+
+```python
+from race_predictor.data import load_runs
+
+runs = load_runs("data/activities.csv")
+print(f"{len(runs)} runs loaded")
+print(runs[-1].distance_mi, runs[-1].pace_min_per_mi)
+```
+
+All distances are in miles, elevation in feet, temperature in °F, pace in min/mile.
+
 ## Tests
 
 ```bash

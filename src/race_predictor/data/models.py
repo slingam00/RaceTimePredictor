@@ -1,0 +1,28 @@
+"""Data models for parsed Strava runs."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime
+
+
+@dataclass(frozen=True)
+class Run:
+    activity_id: str
+    date: datetime
+    name: str
+    distance_mi: float
+    moving_time_sec: float
+    elev_gain_ft: float
+    elev_loss_ft: float
+    gap_pace_min_per_mi: float | None
+    avg_hr: float | None
+    relative_effort: float | None
+    temp_f: float | None
+    is_likely_race: bool = False
+
+    @property
+    def pace_min_per_mi(self) -> float | None:
+        if self.distance_mi <= 0 or self.moving_time_sec <= 0:
+            return None
+        return (self.moving_time_sec / 60.0) / self.distance_mi
