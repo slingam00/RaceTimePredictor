@@ -46,6 +46,27 @@ features = compute_fitness_features(runs, runs[-1].date, "Marathon")
 # 12-week window for Half/Marathon; 10-week for 5K/10K
 ```
 
+## Baseline predictions (VDOT + Riegel)
+
+```python
+from race_predictor.data import load_runs
+from race_predictor.models.baseline import predict_all_baselines
+from race_predictor.formatting import format_time, format_pace
+
+runs = load_runs("data/activities.csv")
+predictions = predict_all_baselines(
+    runs,
+    as_of=runs[-1].date,
+    elev_gain_ft=492,
+    elev_loss_ft=492,
+    temp_f=72,
+)
+for p in predictions:
+    print(p.distance_label, format_time(p.predicted_time_sec), format_pace(p.pace_min_per_mi))
+```
+
+Blends **60% VDOT** (from weighted recent fitness) + **40% Riegel** (from best recent effort), then adjusts for elevation (ft) and temperature (°F).
+
 ## Tests
 
 ```bash

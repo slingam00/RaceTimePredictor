@@ -29,3 +29,20 @@ def vdot_from_effort(distance_mi: float, time_sec: float) -> float | None:
     if pct <= 0:
         return None
     return vo2 / pct
+
+
+def time_from_vdot(vdot: float, distance_mi: float) -> float | None:
+    """Predict race time (seconds) for a distance at a given VDOT."""
+    if vdot <= 0 or distance_mi <= 0:
+        return None
+    low, high = 60.0, distance_mi * 20.0 * 60.0
+    for _ in range(80):
+        mid = (low + high) / 2.0
+        computed = vdot_from_effort(distance_mi, mid)
+        if computed is None:
+            return None
+        if computed > vdot:
+            low = mid
+        else:
+            high = mid
+    return (low + high) / 2.0

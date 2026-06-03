@@ -26,3 +26,15 @@ class Run:
         if self.distance_mi <= 0 or self.moving_time_sec <= 0:
             return None
         return (self.moving_time_sec / 60.0) / self.distance_mi
+
+
+@dataclass(frozen=True)
+class BaselinePrediction:
+    distance_label: str
+    distance_mi: float
+    predicted_time_sec: float
+    vdot_time_sec: float | None
+    riegel_time_sec: float | None
+    blended_time_sec: float
+    adjusted_time_sec: float
+    pace_min_per_mi: float
