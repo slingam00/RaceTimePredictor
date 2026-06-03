@@ -38,3 +38,22 @@ class BaselinePrediction:
     blended_time_sec: float
     adjusted_time_sec: float
     pace_min_per_mi: float
+
+
+@dataclass
+class TrainedModel:
+    residual_model: object
+    feature_names: list[str]
+    default_temp_f: float
+
+
+@dataclass(frozen=True)
+class RacePrediction:
+    distance_label: str
+    distance_mi: float
+    baseline_time_sec: float
+    residual_sec: float
+    predicted_time_sec: float
+    vdot_time_sec: float | None
+    riegel_time_sec: float | None
+    pace_min_per_mi: float

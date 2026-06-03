@@ -103,3 +103,47 @@ def compute_fitness_features(
         "days_since_last_run": float(days_since),
         "long_run_count": float(long_runs),
     }
+
+
+FEATURE_NAMES = [
+    "window_days",
+    "total_miles",
+    "run_count",
+    "runs_per_week",
+    "longest_run_mi",
+    "weekly_mileage_std",
+    "weighted_vdot",
+    "best_gap_pace",
+    "avg_relative_effort",
+    "avg_hr",
+    "days_since_last_run",
+    "long_run_count",
+    "target_distance_mi",
+    "elev_gain_ft",
+    "elev_loss_ft",
+    "temp_f",
+    "elev_per_mile",
+]
+
+
+def feature_vector(
+    features: dict[str, float],
+    target_distance_mi: float,
+    elev_gain_ft: float,
+    elev_loss_ft: float,
+    temp_f: float,
+) -> dict[str, float]:
+    return {
+        **features,
+        "target_distance_mi": target_distance_mi,
+        "elev_gain_ft": elev_gain_ft,
+        "elev_loss_ft": elev_loss_ft,
+        "temp_f": temp_f,
+        "elev_per_mile": elev_gain_ft / max(target_distance_mi, 0.1),
+    }
+
+
+def features_to_array(feature_names: list[str], row: dict[str, float]):
+    import numpy as np
+
+    return np.array([row.get(name, 0.0) for name in feature_names], dtype=float)

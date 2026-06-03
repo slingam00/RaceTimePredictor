@@ -67,6 +67,35 @@ for p in predictions:
 
 Blends **60% VDOT** (from weighted recent fitness) + **40% Riegel** (from best recent effort), then adjusts for elevation (ft) and temperature (°F).
 
+## Hybrid predictions (baseline + ML residual)
+
+```python
+from race_predictor.data import load_runs
+from race_predictor.models.predictor import train, predict_all
+from race_predictor.formatting import format_time, format_pace
+
+runs = load_runs("data/activities.csv")
+model = train(runs, "models/trained_model.pkl")
+
+predictions = predict_all(
+    runs,
+    model,
+    as_of=runs[-1].date,
+    elev_gain_ft=492,
+    elev_loss_ft=492,
+    temp_f=72,
+)
+for p in predictions:
+    print(
+        p.distance_label,
+        format_time(p.predicted_time_sec),
+        format_pace(p.pace_min_per_mi),
+        f"(residual {p.residual_sec:+.0f}s)",
+    )
+```
+
+The ML layer learns athlete-specific corrections from time-series holdouts on top of the VDOT/Riegel baseline.
+
 ## Tests
 
 ```bash

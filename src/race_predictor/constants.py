@@ -17,6 +17,13 @@ RACE_DISTANCES_MI: dict[str, float] = {
     "Marathon": 26.2188,
 }
 
+DISTANCE_BUCKETS_MI: dict[str, tuple[float, float]] = {
+    "5K": (2.95, 3.25),
+    "10K": (5.9, 6.5),
+    "Half": (12.5, 13.7),
+    "Marathon": (25.0, 27.5),
+}
+
 DEFAULT_DISTANCE_LABEL = "5K"
 
 RIEGEL_EXPONENT = 1.06

@@ -1,0 +1,96 @@
+"""Train, load, and run hybrid baseline + ML residual predictions."""
+
+from __future__ import annotations
+
+import pickle
+from datetime import datetime
+from pathlib import Path
+
+from race_predictor.constants import DEFAULT_TEMP_F, RACE_DISTANCES_MI
+from race_predictor.data.models import RacePrediction, Run, TrainedModel
+from race_predictor.features.fitness import compute_fitness_features
+from race_predictor.models.baseline import predict_baseline
+from race_predictor.models.residual import predict_residual, train_residual_model
+
+DEFAULT_MODEL_PATH = Path("models/trained_model.pkl")
+
+
+def train(runs: list[Run], model_path: str | Path = DEFAULT_MODEL_PATH) -> TrainedModel:
+    model = train_residual_model(runs)
+    path = Path(model_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("wb") as handle:
+        pickle.dump(model, handle)
+    return model
+
+
+def load_model(model_path: str | Path = DEFAULT_MODEL_PATH) -> TrainedModel:
+    with Path(model_path).open("rb") as handle:
+        return pickle.load(handle)
+
+
+def predict_race(
+    runs: list[Run],
+    model: TrainedModel,
+    as_of: datetime,
+    distance_label: str,
+    elev_gain_ft: float,
+    elev_loss_ft: float,
+    temp_f: float | None = None,
+) -> RacePrediction | None:
+    if temp_f is None:
+        temp_f = model.default_temp_f
+
+    prior = [run for run in runs if run.date < as_of]
+    if not prior:
+        prior = runs
+
+    baseline = predict_baseline(
+        prior, as_of, distance_label, elev_gain_ft, elev_loss_ft, temp_f
+    )
+    if baseline is None:
+        return None
+
+    features = compute_fitness_features(prior, as_of, distance_label)
+    residual = predict_residual(
+        model,
+        features,
+        baseline.distance_mi,
+        elev_gain_ft,
+        elev_loss_ft,
+        temp_f,
+    )
+    predicted = max(0.0, baseline.predicted_time_sec + residual)
+    pace = (predicted / 60.0) / baseline.distance_mi
+
+    return RacePrediction(
+        distance_label=distance_label,
+        distance_mi=baseline.distance_mi,
+        baseline_time_sec=baseline.predicted_time_sec,
+        residual_sec=residual,
+        predicted_time_sec=predicted,
+        vdot_time_sec=baseline.vdot_time_sec,
+        riegel_time_sec=baseline.riegel_time_sec,
+        pace_min_per_mi=pace,
+    )
+
+
+def predict_all(
+    runs: list[Run],
+    model: TrainedModel,
+    as_of: datetime,
+    elev_gain_ft: float,
+    elev_loss_ft: float,
+    temp_f: float | None = None,
+) -> list[RacePrediction]:
+    if temp_f is None:
+        temp_f = model.default_temp_f
+
+    predictions: list[RacePrediction] = []
+    for label in RACE_DISTANCES_MI:
+        result = predict_race(
+            runs, model, as_of, label, elev_gain_ft, elev_loss_ft, temp_f
+        )
+        if result is not None:
+            predictions.append(result)
+    return predictions
