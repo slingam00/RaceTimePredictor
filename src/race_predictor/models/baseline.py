@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from race_predictor.constants import (
     DEFAULT_TEMP_F,
@@ -16,6 +17,15 @@ from race_predictor.features.window import runs_in_window
 from race_predictor.models.adjustments import apply_course_adjustments
 from race_predictor.models.riegel import riegel_time
 from race_predictor.models.vdot import time_from_vdot, vdot_from_effort
+
+BaselineVariant = Literal["vdot", "riegel", "hybrid"]
+
+
+def _resolve_temp_f(runs: list[Run], temp_f: float | None) -> float:
+    if temp_f is not None:
+        return temp_f
+    temps = [run.temp_f for run in runs if run.temp_f is not None]
+    return sum(temps) / len(temps) if temps else DEFAULT_TEMP_F
 
 
 def best_effort_for_distance(
@@ -92,6 +102,36 @@ def baseline_time_sec(
     return blended, vdot_time, riegel_time_sec
 
 
+def predict_variant_time_sec(
+    runs: list[Run],
+    as_of: datetime,
+    distance_label: str,
+    elev_gain_ft: float,
+    elev_loss_ft: float,
+    temp_f: float | None = None,
+    *,
+    variant: BaselineVariant = "hybrid",
+) -> float | None:
+    """Predict adjusted race time for a single baseline variant."""
+    temp_f = _resolve_temp_f(runs, temp_f)
+    target_distance_mi = RACE_DISTANCES_MI[distance_label]
+    blended, vdot_time, riegel_time_sec = baseline_time_sec(runs, as_of, distance_label)
+
+    if variant == "vdot":
+        base_time = vdot_time
+    elif variant == "riegel":
+        base_time = riegel_time_sec
+    else:
+        base_time = blended
+
+    if base_time is None:
+        return None
+
+    return apply_course_adjustments(
+        base_time, target_distance_mi, elev_gain_ft, elev_loss_ft, temp_f
+    )
+
+
 def predict_baseline(
     runs: list[Run],
     as_of: datetime,
@@ -101,10 +141,7 @@ def predict_baseline(
     temp_f: float | None = None,
 ) -> BaselinePrediction | None:
     """Predict race time using VDOT/Riegel blend plus course adjustments."""
-    if temp_f is None:
-        temps = [run.temp_f for run in runs if run.temp_f is not None]
-        temp_f = sum(temps) / len(temps) if temps else DEFAULT_TEMP_F
-
+    temp_f = _resolve_temp_f(runs, temp_f)
     target_distance_mi = RACE_DISTANCES_MI[distance_label]
     blended, vdot_time, riegel_time_sec = baseline_time_sec(runs, as_of, distance_label)
     if blended is None:

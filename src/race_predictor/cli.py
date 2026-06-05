@@ -9,8 +9,10 @@ from pathlib import Path
 
 import click
 
+from race_predictor.data.benchmark_loader import load_benchmark_corpus
 from race_predictor.data.loader import load_runs
 from race_predictor.evaluate.backtest import backtest_to_dict, run_backtest
+from race_predictor.evaluate.benchmark import benchmark_to_dict, run_benchmark
 from race_predictor.formatting import format_pace, format_time
 from race_predictor.models.predictor import DEFAULT_MODEL_PATH, load_model, predict_all, train
 
@@ -186,4 +188,66 @@ def evaluate_cmd(data_dir: str, model_path: str, output: str) -> None:
             f"{m.label:<10} {m.count:<5} {m.mape:.1%}   {m.rmse_sec:>6.0f}s   "
             f"{m.within_5_pct:.0%}     {cov}"
         )
+    click.echo(f"\nReport saved to {out_path}")
+
+
+@main.command("benchmark")
+@click.option(
+    "--corpus",
+    default="benchmarks/sample_corpus.csv",
+    show_default=True,
+    type=click.Path(exists=True, dir_okay=False),
+    help="Multi-athlete benchmark CSV (see data/benchmark_loader.py columns).",
+)
+@click.option(
+    "--holdout-frac",
+    default=0.25,
+    show_default=True,
+    type=click.FloatRange(0.1, 0.5),
+    help="Fraction of athletes held out for testing.",
+)
+@click.option("--seed", default=42, show_default=True, type=int)
+@click.option("--output", default="reports/benchmark.json", show_default=True)
+def benchmark_cmd(corpus: str, holdout_frac: float, seed: int, output: str) -> None:
+    """Run athlete-level public benchmark across model variants."""
+    try:
+        runs = load_benchmark_corpus(corpus)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    if not runs:
+        raise click.ClickException(f"No runs found in benchmark corpus {corpus}")
+
+    try:
+        result = run_benchmark(runs, holdout_frac=holdout_frac, seed=seed)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    out_path = Path(output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8") as handle:
+        json.dump(benchmark_to_dict(result), handle, indent=2)
+
+    click.echo(
+        f"Benchmark corpus: {len(runs)} runs, "
+        f"{result.train_athletes} train / {result.test_athletes} test athletes"
+    )
+    click.echo(f"Held-out race efforts: {result.holdout_count}\n")
+    click.echo(f"{'Variant':<12} {'Distance':<10} {'N':<5} {'MAPE':<8} {'RMSE':<10} {'±5%'}")
+    click.echo("-" * 60)
+    for row in result.comparison_table:
+        if row.count == 0:
+            continue
+        click.echo(
+            f"{row.variant:<12} {row.distance_label:<10} {row.count:<5} "
+            f"{row.mape:.1%}   {row.rmse_sec:>6.0f}s   {row.within_5_pct:.0%}"
+        )
+
+    gen = result.generalization
+    click.echo("\nGeneralization")
+    click.echo(f"  Verdict: {gen.get('verdict', 'inconclusive')}")
+    click.echo(f"  Best test variant: {gen.get('best_test_variant')} "
+               f"(MAPE {gen.get('best_test_mape', 0):.1%})")
+    for note in gen.get("notes", []):
+        click.echo(f"  - {note}")
     click.echo(f"\nReport saved to {out_path}")

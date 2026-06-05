@@ -1,0 +1,359 @@
+{
+  "corpus_runs": 172,
+  "train_athletes": 6,
+  "test_athletes": 2,
+  "train_athlete_ids": [
+    "athlete_01",
+    "athlete_02",
+    "athlete_03",
+    "athlete_06",
+    "athlete_07",
+    "athlete_08"
+  ],
+  "test_athlete_ids": [
+    "athlete_04",
+    "athlete_05"
+  ],
+  "holdout_frac": 0.25,
+  "seed": 42,
+  "holdout_count": 3,
+  "variants": [
+    "riegel",
+    "vdot",
+    "ultrassignup",
+    "hybrid"
+  ],
+  "metrics_by_variant": {
+    "riegel": [
+      {
+        "label": "5K",
+        "count": 2,
+        "mape": 0.4021652759499056,
+        "rmse_sec": 571.2675423812373,
+        "median_abs_error_sec": 571.2477512113129,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "10K",
+        "count": 1,
+        "mape": 0.053321007969062015,
+        "rmse_sec": 149.72539037712613,
+        "median_abs_error_sec": 149.72539037712613,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 1.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Half",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Marathon",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      }
+    ],
+    "vdot": [
+      {
+        "label": "5K",
+        "count": 2,
+        "mape": 0.40071051361952303,
+        "rmse_sec": 569.1835217435097,
+        "median_abs_error_sec": 569.1603355861133,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "10K",
+        "count": 1,
+        "mape": 0.3862472656622623,
+        "rmse_sec": 1084.5823219796325,
+        "median_abs_error_sec": 1084.5823219796325,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Half",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Marathon",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      }
+    ],
+    "ultrassignup": [
+      {
+        "label": "5K",
+        "count": 2,
+        "mape": 0.21830638888888898,
+        "rmse_sec": 315.3266671346559,
+        "median_abs_error_sec": 306.27750000000015,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "10K",
+        "count": 1,
+        "mape": 0.05091346153846159,
+        "rmse_sec": 142.96500000000015,
+        "median_abs_error_sec": 142.96500000000015,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 1.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Half",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Marathon",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      }
+    ],
+    "hybrid": [
+      {
+        "label": "5K",
+        "count": 2,
+        "mape": 0.021448129970095015,
+        "rmse_sec": 30.624946707797136,
+        "median_abs_error_sec": 30.216575957104283,
+        "within_3_pct": 1.0,
+        "within_5_pct": 1.0,
+        "within_10_pct": 1.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "10K",
+        "count": 1,
+        "mape": 0.031643879676377905,
+        "rmse_sec": 88.85601413126915,
+        "median_abs_error_sec": 88.85601413126915,
+        "within_3_pct": 0.0,
+        "within_5_pct": 1.0,
+        "within_10_pct": 1.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Half",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      },
+      {
+        "label": "Marathon",
+        "count": 0,
+        "mape": 0.0,
+        "rmse_sec": 0.0,
+        "median_abs_error_sec": 0.0,
+        "within_3_pct": 0.0,
+        "within_5_pct": 0.0,
+        "within_10_pct": 0.0,
+        "interval_coverage_80": null
+      }
+    ]
+  },
+  "comparison_table": [
+    {
+      "variant": "riegel",
+      "distance_label": "5K",
+      "count": 2,
+      "mape": 0.4021652759499056,
+      "rmse_sec": 571.2675423812373,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "riegel",
+      "distance_label": "10K",
+      "count": 1,
+      "mape": 0.053321007969062015,
+      "rmse_sec": 149.72539037712613,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "riegel",
+      "distance_label": "Half",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "riegel",
+      "distance_label": "Marathon",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "vdot",
+      "distance_label": "5K",
+      "count": 2,
+      "mape": 0.40071051361952303,
+      "rmse_sec": 569.1835217435097,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "vdot",
+      "distance_label": "10K",
+      "count": 1,
+      "mape": 0.3862472656622623,
+      "rmse_sec": 1084.5823219796325,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "vdot",
+      "distance_label": "Half",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "vdot",
+      "distance_label": "Marathon",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "ultrassignup",
+      "distance_label": "5K",
+      "count": 2,
+      "mape": 0.21830638888888898,
+      "rmse_sec": 315.3266671346559,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "ultrassignup",
+      "distance_label": "10K",
+      "count": 1,
+      "mape": 0.05091346153846159,
+      "rmse_sec": 142.96500000000015,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "ultrassignup",
+      "distance_label": "Half",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "ultrassignup",
+      "distance_label": "Marathon",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "hybrid",
+      "distance_label": "5K",
+      "count": 2,
+      "mape": 0.021448129970095015,
+      "rmse_sec": 30.624946707797136,
+      "within_5_pct": 1.0
+    },
+    {
+      "variant": "hybrid",
+      "distance_label": "10K",
+      "count": 1,
+      "mape": 0.031643879676377905,
+      "rmse_sec": 88.85601413126915,
+      "within_5_pct": 1.0
+    },
+    {
+      "variant": "hybrid",
+      "distance_label": "Half",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    },
+    {
+      "variant": "hybrid",
+      "distance_label": "Marathon",
+      "count": 0,
+      "mape": 0.0,
+      "rmse_sec": 0.0,
+      "within_5_pct": 0.0
+    }
+  ],
+  "generalization": {
+    "verdict": "generalizes",
+    "notes": [
+      "Hybrid beats Riegel on held-out athletes.",
+      "Hybrid beats VDOT on held-out athletes.",
+      "Hybrid beats UltraSignup on held-out athletes.",
+      "Train/test hybrid MAPE gap: +0.6%.",
+      "ML layer appears to generalize across athletes (small train/test gap)."
+    ],
+    "hybrid_train_mape": 0.018894314756541502,
+    "hybrid_test_mape": 0.024846713205522647,
+    "riegel_test_mape": 0.2858838532896244,
+    "vdot_test_mape": 0.39588943096710283,
+    "ultrassignup_test_mape": 0.16250874643874652,
+    "best_test_variant": "hybrid",
+    "best_test_mape": 0.024846713205522647
+  }
+}

@@ -20,6 +20,7 @@ class Run:
     relative_effort: float | None
     temp_f: float | None
     is_likely_race: bool = False
+    athlete_id: str = "default"
 
     @property
     def pace_min_per_mi(self) -> float | None:
