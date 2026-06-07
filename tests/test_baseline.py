@@ -52,9 +52,26 @@ def test_riegel_double_distance():
 def test_course_adjustments_increase_with_heat_and_elevation():
     base = 3600.0
     flat_cool = apply_course_adjustments(base, 6.0, 0, 0, 50)
-    hot_hilly = apply_course_adjustments(base, 6.0, 500, 500, 80)
-    assert hot_hilly > flat_cool
+    hot_flat = apply_course_adjustments(base, 6.0, 0, 0, 80)
+    hot_uphill = apply_course_adjustments(base, 6.0, 500, 0, 80)
+    assert hot_flat > flat_cool
+    assert hot_uphill > hot_flat
     assert temperature_factor(72) > 1.0
+
+
+def test_equal_gain_and_loss_is_flat_elevation():
+    base = 3600.0
+    flat = apply_course_adjustments(base, 6.0, 0, 0, 50)
+    rolling = apply_course_adjustments(base, 6.0, 492, 492, 50)
+    assert rolling == pytest.approx(flat)
+
+
+def test_downhill_course_faster_than_flat():
+    base = 3600.0
+    flat = apply_course_adjustments(base, 26.2, 0, 0, 50)
+    downhill = apply_course_adjustments(base, 26.2, 0, 1000, 50)
+    assert downhill < flat
+    assert flat - downhill == pytest.approx(45.0, rel=1e-3)
 
 
 def test_baseline_increases_with_distance():

@@ -66,13 +66,7 @@ def build_training_rows(runs: list[Run]) -> tuple[np.ndarray, np.ndarray, list[d
             continue
 
         features = compute_fitness_features(prior, holdout.date, label)
-        row = feature_vector(
-            features,
-            RACE_DISTANCES_MI[label],
-            holdout.elev_gain_ft,
-            holdout.elev_loss_ft,
-            temp_f,
-        )
+        row = feature_vector(features, RACE_DISTANCES_MI[label])
         residual = holdout.moving_time_sec - baseline.predicted_time_sec
 
         xs.append(features_to_array(FEATURE_NAMES, row))
@@ -154,10 +148,7 @@ def predict_residual(
     model: TrainedModel,
     features: dict[str, float],
     target_distance_mi: float,
-    elev_gain_ft: float,
-    elev_loss_ft: float,
-    temp_f: float,
 ) -> float:
-    row = feature_vector(features, target_distance_mi, elev_gain_ft, elev_loss_ft, temp_f)
+    row = feature_vector(features, target_distance_mi)
     x = features_to_array(model.feature_names, row).reshape(1, -1)
     return float(model.residual_model.predict(x)[0])

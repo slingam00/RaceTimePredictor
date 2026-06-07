@@ -19,9 +19,6 @@ class PredictionItem(BaseModel):
     distance_label: str
     predicted_time_sec: float
     pace_min_per_mi: float
-    interval_low_sec: float
-    interval_high_sec: float
-    confidence: int
 
 
 class PredictResponse(BaseModel):

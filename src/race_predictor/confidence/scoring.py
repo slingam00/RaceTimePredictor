@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from race_predictor.constants import RACE_DISTANCES_MI
+from race_predictor.constants import PREDICTION_INTERVAL_Z, RACE_DISTANCES_MI
 from race_predictor.data.models import TrainedModel
 
 
@@ -79,7 +79,7 @@ def prediction_interval(
     distance_label: str,
     predicted_time_sec: float,
     features: dict[str, float],
-    z: float = 1.28,
+    z: float = PREDICTION_INTERVAL_Z,
 ) -> tuple[float, float]:
     stats = model.residual_stats.get(distance_label)
     if stats and stats.get("count", 0) >= 2:

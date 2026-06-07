@@ -28,24 +28,24 @@
       {
         "label": "5K",
         "count": 2,
-        "mape": 0.4021652759499056,
-        "rmse_sec": 571.2675423812373,
-        "median_abs_error_sec": 571.2477512113129,
+        "mape": 0.40154777594990554,
+        "rmse_sec": 570.3900728283871,
+        "median_abs_error_sec": 570.3702512113128,
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "10K",
         "count": 1,
-        "mape": 0.053321007969062015,
-        "rmse_sec": 149.72539037712613,
-        "median_abs_error_sec": 149.72539037712613,
+        "mape": 0.05248767463572863,
+        "rmse_sec": 147.385390377126,
+        "median_abs_error_sec": 147.385390377126,
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 1.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Half",
@@ -56,7 +56,7 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Marathon",
@@ -67,31 +67,31 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       }
     ],
     "vdot": [
       {
         "label": "5K",
         "count": 2,
-        "mape": 0.40071051361952303,
-        "rmse_sec": 569.1835217435097,
-        "median_abs_error_sec": 569.1603355861133,
+        "mape": 0.40009301361952304,
+        "rmse_sec": 568.3060575443841,
+        "median_abs_error_sec": 568.2828355861133,
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "10K",
         "count": 1,
-        "mape": 0.3862472656622623,
-        "rmse_sec": 1084.5823219796325,
-        "median_abs_error_sec": 1084.5823219796325,
+        "mape": 0.3854139323289289,
+        "rmse_sec": 1082.2423219796324,
+        "median_abs_error_sec": 1082.2423219796324,
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Half",
@@ -102,7 +102,7 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Marathon",
@@ -113,31 +113,31 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       }
     ],
     "ultrassignup": [
       {
         "label": "5K",
         "count": 2,
-        "mape": 0.21830638888888898,
-        "rmse_sec": 315.3266671346559,
-        "median_abs_error_sec": 306.27750000000015,
+        "mape": 0.21768888888888896,
+        "rmse_sec": 314.4744186734432,
+        "median_abs_error_sec": 305.4000000000001,
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "10K",
         "count": 1,
-        "mape": 0.05091346153846159,
-        "rmse_sec": 142.96500000000015,
-        "median_abs_error_sec": 142.96500000000015,
+        "mape": 0.05008012820512821,
+        "rmse_sec": 140.625,
+        "median_abs_error_sec": 140.625,
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 1.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Half",
@@ -148,7 +148,7 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Marathon",
@@ -159,31 +159,31 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       }
     ],
     "hybrid": [
       {
         "label": "5K",
         "count": 2,
-        "mape": 0.021448129970095015,
-        "rmse_sec": 30.624946707797136,
-        "median_abs_error_sec": 30.216575957104283,
+        "mape": 0.007786895243342618,
+        "rmse_sec": 11.897728547696238,
+        "median_abs_error_sec": 10.803242398035081,
         "within_3_pct": 1.0,
         "within_5_pct": 1.0,
         "within_10_pct": 1.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "10K",
         "count": 1,
-        "mape": 0.031643879676377905,
-        "rmse_sec": 88.85601413126915,
-        "median_abs_error_sec": 88.85601413126915,
+        "mape": 0.037216388457863854,
+        "rmse_sec": 104.5036187896817,
+        "median_abs_error_sec": 104.5036187896817,
         "within_3_pct": 0.0,
         "within_5_pct": 1.0,
         "within_10_pct": 1.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Half",
@@ -194,7 +194,7 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       },
       {
         "label": "Marathon",
@@ -205,7 +205,7 @@
         "within_3_pct": 0.0,
         "within_5_pct": 0.0,
         "within_10_pct": 0.0,
-        "interval_coverage_80": null
+        "interval_coverage_95": null
       }
     ]
   },
@@ -214,16 +214,16 @@
       "variant": "riegel",
       "distance_label": "5K",
       "count": 2,
-      "mape": 0.4021652759499056,
-      "rmse_sec": 571.2675423812373,
+      "mape": 0.40154777594990554,
+      "rmse_sec": 570.3900728283871,
       "within_5_pct": 0.0
     },
     {
       "variant": "riegel",
       "distance_label": "10K",
       "count": 1,
-      "mape": 0.053321007969062015,
-      "rmse_sec": 149.72539037712613,
+      "mape": 0.05248767463572863,
+      "rmse_sec": 147.385390377126,
       "within_5_pct": 0.0
     },
     {
@@ -246,16 +246,16 @@
       "variant": "vdot",
       "distance_label": "5K",
       "count": 2,
-      "mape": 0.40071051361952303,
-      "rmse_sec": 569.1835217435097,
+      "mape": 0.40009301361952304,
+      "rmse_sec": 568.3060575443841,
       "within_5_pct": 0.0
     },
     {
       "variant": "vdot",
       "distance_label": "10K",
       "count": 1,
-      "mape": 0.3862472656622623,
-      "rmse_sec": 1084.5823219796325,
+      "mape": 0.3854139323289289,
+      "rmse_sec": 1082.2423219796324,
       "within_5_pct": 0.0
     },
     {
@@ -278,16 +278,16 @@
       "variant": "ultrassignup",
       "distance_label": "5K",
       "count": 2,
-      "mape": 0.21830638888888898,
-      "rmse_sec": 315.3266671346559,
+      "mape": 0.21768888888888896,
+      "rmse_sec": 314.4744186734432,
       "within_5_pct": 0.0
     },
     {
       "variant": "ultrassignup",
       "distance_label": "10K",
       "count": 1,
-      "mape": 0.05091346153846159,
-      "rmse_sec": 142.96500000000015,
+      "mape": 0.05008012820512821,
+      "rmse_sec": 140.625,
       "within_5_pct": 0.0
     },
     {
@@ -310,16 +310,16 @@
       "variant": "hybrid",
       "distance_label": "5K",
       "count": 2,
-      "mape": 0.021448129970095015,
-      "rmse_sec": 30.624946707797136,
+      "mape": 0.007786895243342618,
+      "rmse_sec": 11.897728547696238,
       "within_5_pct": 1.0
     },
     {
       "variant": "hybrid",
       "distance_label": "10K",
       "count": 1,
-      "mape": 0.031643879676377905,
-      "rmse_sec": 88.85601413126915,
+      "mape": 0.037216388457863854,
+      "rmse_sec": 104.5036187896817,
       "within_5_pct": 1.0
     },
     {
@@ -345,15 +345,15 @@
       "Hybrid beats Riegel on held-out athletes.",
       "Hybrid beats VDOT on held-out athletes.",
       "Hybrid beats UltraSignup on held-out athletes.",
-      "Train/test hybrid MAPE gap: +0.6%.",
+      "Train/test hybrid MAPE gap: -0.7%.",
       "ML layer appears to generalize across athletes (small train/test gap)."
     ],
-    "hybrid_train_mape": 0.018894314756541502,
-    "hybrid_test_mape": 0.024846713205522647,
-    "riegel_test_mape": 0.2858838532896244,
-    "vdot_test_mape": 0.39588943096710283,
-    "ultrassignup_test_mape": 0.16250874643874652,
+    "hybrid_train_mape": 0.025015646111375734,
+    "hybrid_test_mape": 0.0175967263148497,
+    "riegel_test_mape": 0.28519440884517994,
+    "vdot_test_mape": 0.3951999865226583,
+    "ultrassignup_test_mape": 0.16181930199430203,
     "best_test_variant": "hybrid",
-    "best_test_mape": 0.024846713205522647
+    "best_test_mape": 0.0175967263148497
   }
 }

@@ -16,14 +16,13 @@ def elevation_time_adjustment_sec(
     distance_mi: float,
     elev_gain_ft: float,
     elev_loss_ft: float,
-    sec_per_100ft_gain: float = 4.5,
+    sec_per_100ft: float = 4.5,
 ) -> float:
-    """Add time for course elevation vs flat baseline."""
+    """Add time for net course elevation vs flat baseline (US units)."""
     if distance_mi <= 0:
         return 0.0
-    gain_penalty = (elev_gain_ft / 100.0) * sec_per_100ft_gain
-    loss_bonus = (elev_loss_ft / 100.0) * (sec_per_100ft_gain * 0.35)
-    return gain_penalty - loss_bonus
+    net_gain_ft = elev_gain_ft - elev_loss_ft
+    return (net_gain_ft / 100.0) * sec_per_100ft
 
 
 def apply_course_adjustments(

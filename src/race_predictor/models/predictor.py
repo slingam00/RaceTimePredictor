@@ -57,9 +57,6 @@ def predict_race(
         model,
         features,
         baseline.distance_mi,
-        elev_gain_ft,
-        elev_loss_ft,
-        temp_f,
     )
     predicted = max(0.0, baseline.predicted_time_sec + residual)
     pace = (predicted / 60.0) / baseline.distance_mi

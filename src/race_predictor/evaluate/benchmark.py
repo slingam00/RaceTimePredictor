@@ -112,9 +112,6 @@ def _predict_variant(
         model,
         features,
         baseline.distance_mi,
-        holdout.elev_gain_ft,
-        holdout.elev_loss_ft,
-        temp_f,
     )
     return max(0.0, baseline.predicted_time_sec + residual)
 

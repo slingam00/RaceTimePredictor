@@ -90,7 +90,7 @@ def test_run_backtest_from_export():
     metrics_5k = next(m for m in result.metrics if m.label == "5K")
     assert metrics_5k.count > 0
     assert metrics_5k.mape > 0
-    assert metrics_5k.interval_coverage_80 is not None
+    assert metrics_5k.interval_coverage_95 is not None
 
     payload = backtest_to_dict(result)
     assert "metrics" in payload

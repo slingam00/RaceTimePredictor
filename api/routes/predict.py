@@ -70,9 +70,6 @@ def predict_races(
                 distance_label=item.distance_label,
                 predicted_time_sec=item.predicted_time_sec,
                 pace_min_per_mi=item.pace_min_per_mi,
-                interval_low_sec=item.interval_low_sec,
-                interval_high_sec=item.interval_high_sec,
-                confidence=item.confidence,
             )
             for item in predictions
         ],

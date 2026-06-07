@@ -32,3 +32,6 @@ RIEGEL_BASELINE_WEIGHT = 0.4
 
 OPTIMAL_TEMP_F = 52.0
 DEFAULT_TEMP_F = 60.0
+
+# Two-sided normal z for 95% prediction intervals.
+PREDICTION_INTERVAL_Z = 1.96

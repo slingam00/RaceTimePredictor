@@ -17,7 +17,7 @@ class DistanceMetrics:
     within_3_pct: float
     within_5_pct: float
     within_10_pct: float
-    interval_coverage_80: float | None
+    interval_coverage_95: float | None
 
 
 def compute_metrics(label: str, actuals: list[float], predicted: list[float]) -> DistanceMetrics:
@@ -38,5 +38,5 @@ def compute_metrics(label: str, actuals: list[float], predicted: list[float]) ->
         within_3_pct=float(np.mean(pct_errors <= 0.03)),
         within_5_pct=float(np.mean(pct_errors <= 0.05)),
         within_10_pct=float(np.mean(pct_errors <= 0.10)),
-        interval_coverage_80=None,
+        interval_coverage_95=None,
     )

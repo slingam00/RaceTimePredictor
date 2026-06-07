@@ -143,19 +143,13 @@ def predict(
         )
 
     click.echo(f"\nPredictions as of {as_of_dt.date()} (US customary units)\n")
-    click.echo(
-        f"{'Distance':<10} {'Predicted':<12} {'Pace':<12} "
-        f"{'80% Interval':<22} {'Conf'}"
-    )
-    click.echo("-" * 68)
+    click.echo(f"{'Distance':<10} {'Predicted Time':<14} {'Pace':<12}")
+    click.echo("-" * 38)
     for p in predictions:
-        interval = f"{format_time(p.interval_low_sec)} – {format_time(p.interval_high_sec)}"
         click.echo(
             f"{p.distance_label:<10} "
-            f"{format_time(p.predicted_time_sec):<12} "
-            f"{format_pace(p.pace_min_per_mi):<12} "
-            f"{interval:<22} "
-            f"{p.confidence}"
+            f"{format_time(p.predicted_time_sec):<14} "
+            f"{format_pace(p.pace_min_per_mi):<12}"
         )
 
 
@@ -180,10 +174,10 @@ def evaluate_cmd(data_dir: str, model_path: str, output: str) -> None:
 
     click.echo(f"Backtest holdouts: {result.holdout_count}")
     click.echo(f"Training rows: {result.training_rows}\n")
-    click.echo(f"{'Distance':<10} {'N':<5} {'MAPE':<8} {'RMSE':<10} {'±5%':<8} {'80% Cov'}")
+    click.echo(f"{'Distance':<10} {'N':<5} {'MAPE':<8} {'RMSE':<10} {'±5%':<8} {'95% Cov'}")
     click.echo("-" * 55)
     for m in result.metrics:
-        cov = f"{m.interval_coverage_80:.0%}" if m.interval_coverage_80 is not None else "—"
+        cov = f"{m.interval_coverage_95:.0%}" if m.interval_coverage_95 is not None else "—"
         click.echo(
             f"{m.label:<10} {m.count:<5} {m.mape:.1%}   {m.rmse_sec:>6.0f}s   "
             f"{m.within_5_pct:.0%}     {cov}"

@@ -119,27 +119,17 @@ FEATURE_NAMES = [
     "days_since_last_run",
     "long_run_count",
     "target_distance_mi",
-    "elev_gain_ft",
-    "elev_loss_ft",
-    "temp_f",
-    "elev_per_mile",
 ]
 
 
 def feature_vector(
     features: dict[str, float],
     target_distance_mi: float,
-    elev_gain_ft: float,
-    elev_loss_ft: float,
-    temp_f: float,
 ) -> dict[str, float]:
+    """Fitness features for ML residual (course elev/temp handled in baseline only)."""
     return {
         **features,
         "target_distance_mi": target_distance_mi,
-        "elev_gain_ft": elev_gain_ft,
-        "elev_loss_ft": elev_loss_ft,
-        "temp_f": temp_f,
-        "elev_per_mile": elev_gain_ft / max(target_distance_mi, 0.1),
     }
 
 

@@ -62,9 +62,6 @@ def run_backtest(runs: list[Run], model: TrainedModel | None = None) -> Backtest
             model,
             features,
             baseline.distance_mi,
-            holdout.elev_gain_ft,
-            holdout.elev_loss_ft,
-            temp_f,
         )
         predicted = max(0.0, baseline.predicted_time_sec + residual)
         low, high = prediction_interval(model, label, predicted, features)
@@ -85,7 +82,7 @@ def run_backtest(runs: list[Run], model: TrainedModel | None = None) -> Backtest
                 "baseline_sec": baseline.predicted_time_sec,
                 "interval_low_sec": low,
                 "interval_high_sec": high,
-                "in_80_interval": in_interval,
+                "in_95_interval": in_interval,
             }
         )
 
@@ -94,7 +91,7 @@ def run_backtest(runs: list[Run], model: TrainedModel | None = None) -> Backtest
         result = compute_metrics(label, bucket_actuals[label], bucket_preds[label])
         hits = bucket_interval_hits[label]
         if hits:
-            result.interval_coverage_80 = sum(hits) / len(hits)
+            result.interval_coverage_95 = sum(hits) / len(hits)
         metrics.append(result)
 
     from race_predictor.models.residual import build_training_rows
