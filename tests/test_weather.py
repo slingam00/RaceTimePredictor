@@ -6,7 +6,7 @@ from datetime import date
 
 import pytest
 
-from race_predictor.data.weather import fetch_race_day_weather
+from race_predictor.data.weather import fetch_race_day_weather, geocode_us_city
 
 
 def _mock_forecast_payload(max_f: float, min_f: float) -> dict:
@@ -76,6 +76,20 @@ def test_climatology_for_far_future_race():
     assert result.temp_f == pytest.approx(45.0)
     assert result.source == "typical"
     assert len(calls) == 10
+
+
+def test_geocode_us_city_prefers_matching_state():
+    def loader(url: str) -> dict:
+        assert "geocoding-api" in url
+        return {
+            "results": [
+                {"name": "Rocky Mount", "admin1": "Virginia", "latitude": 36.99, "longitude": -79.89},
+                {"name": "Rocky Mount", "admin1": "North Carolina", "latitude": 35.94, "longitude": -77.79},
+            ]
+        }
+
+    coords = geocode_us_city("Rocky Mount", "NC", fetch_json=loader)
+    assert coords == pytest.approx((35.94, -77.79))
 
 
 def test_api_failure_returns_model_default():

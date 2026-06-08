@@ -16,6 +16,7 @@ from race_predictor.data.runsignup_corpus import (
     results_to_runs,
     select_event,
     sync_corpus,
+    temp_band,
     write_corpus_csv,
 )
 from race_predictor.data.weather import RaceDayWeather
@@ -113,6 +114,13 @@ def test_sync_corpus_writes_csv_and_report(tmp_path, monkeypatch):
     text = (tmp_path / "rewrite.csv").read_text(encoding="utf-8")
     assert "athlete_id" in text
     assert "9001" in text
+
+
+def test_temp_band_buckets():
+    assert temp_band(30.0) == "cold"
+    assert temp_band(55.0) == "mild"
+    assert temp_band(80.0) == "warm"
+    assert temp_band(None) is None
 
 
 def test_coverage_report_flags_gaps():

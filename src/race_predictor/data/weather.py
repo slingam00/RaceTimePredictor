@@ -14,6 +14,61 @@ from race_predictor.constants import DEFAULT_TEMP_F
 
 FORECAST_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 ARCHIVE_BASE_URL = "https://archive-api.open-meteo.com/v1/archive"
+GEOCODING_BASE_URL = "https://geocoding-api.open-meteo.com/v1/search"
+
+US_STATE_NAMES: dict[str, str] = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming",
+    "DC": "District of Columbia",
+}
 FORECAST_HORIZON_DAYS = 16
 CLIMATOLOGY_YEARS = 10
 REQUEST_TIMEOUT_SEC = 10
@@ -25,6 +80,56 @@ JsonFetcher = Callable[[str], dict]
 class RaceDayWeather:
     temp_f: float
     source: str  # forecast | archive | typical | model_default
+
+
+def geocode_us_city(
+    city: str | None,
+    state: str | None,
+    *,
+    fetch_json: JsonFetcher | None = None,
+) -> tuple[float, float] | None:
+    """Resolve a US city/state to latitude/longitude via Open-Meteo geocoding."""
+    if not city:
+        return None
+
+    loader = fetch_json or _fetch_json
+    params = {
+        "name": city.strip(),
+        "count": 10,
+        "language": "en",
+        "format": "json",
+        "countryCode": "US",
+    }
+    url = f"{GEOCODING_BASE_URL}?{urlencode(params)}"
+    try:
+        payload = loader(url)
+    except (URLError, OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return None
+
+    results = payload.get("results") or []
+    if not isinstance(results, list) or not results:
+        return None
+
+    state_name = US_STATE_NAMES.get((state or "").strip().upper(), (state or "").strip())
+    if state_name:
+        for hit in results:
+            if not isinstance(hit, dict):
+                continue
+            admin1 = str(hit.get("admin1") or "").strip()
+            if admin1.casefold() == state_name.casefold():
+                lat = hit.get("latitude")
+                lon = hit.get("longitude")
+                if lat is not None and lon is not None:
+                    return float(lat), float(lon)
+
+    first = results[0]
+    if not isinstance(first, dict):
+        return None
+    lat = first.get("latitude")
+    lon = first.get("longitude")
+    if lat is None or lon is None:
+        return None
+    return float(lat), float(lon)
 
 
 def fetch_race_day_weather(

@@ -1,6 +1,40 @@
 {
-  "description": "RunSignup races with published public finisher results (verified via API).",
+  "description": "Diverse RunSignup corpus: flat/rolling/uphill/downhill courses and races spread across the calendar (cold, mild, and warm conditions via historical weather).",
   "races": [
+    {
+      "runsignup_race_id": 70186,
+      "name": "Medal Madness New Year 5K",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5K",
+      "event_name_excludes": "10K",
+      "priority": "required",
+      "notes": "January · Pennsylvania · cold"
+    },
+    {
+      "runsignup_race_id": 70073,
+      "name": "Peacock D.A.S.H. 5K Run",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5K Run",
+      "priority": "required",
+      "notes": "February · Florida · mild/warm"
+    },
+    {
+      "runsignup_race_id": 68750,
+      "name": "47th Colonial Half Marathon and 5K",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5K Run",
+      "priority": "required",
+      "notes": "February · Virginia · cold"
+    },
     {
       "runsignup_race_id": 70191,
       "name": "Bakersfield Donut Run",
@@ -10,17 +44,20 @@
       "elev_loss_ft": 50,
       "event_name_contains": "5k",
       "event_name_excludes": "Virtual",
-      "priority": "required"
+      "priority": "required",
+      "notes": "March · California · warm"
     },
     {
-      "runsignup_race_id": 70186,
-      "name": "Medal Madness New Year 5K",
+      "runsignup_race_id": 71663,
+      "name": "Couve Clover Run",
       "distance_label": "5K",
-      "course_type": "flat",
-      "elev_gain_ft": 50,
-      "elev_loss_ft": 50,
+      "course_type": "rolling",
+      "elev_gain_ft": 150,
+      "elev_loss_ft": 150,
       "event_name_contains": "5K",
-      "priority": "required"
+      "event_name_excludes": "Mile",
+      "priority": "required",
+      "notes": "March · Washington · mild"
     },
     {
       "runsignup_race_id": 68489,
@@ -31,7 +68,8 @@
       "elev_loss_ft": 150,
       "event_name_contains": "Thousand Islands 5K",
       "event_name_excludes": "Virtual",
-      "priority": "required"
+      "priority": "required",
+      "notes": "May · New York · mild"
     },
     {
       "runsignup_race_id": 68478,
@@ -41,7 +79,102 @@
       "elev_gain_ft": 350,
       "elev_loss_ft": 50,
       "event_name_contains": "Buffalo Trace",
-      "priority": "required"
+      "priority": "required",
+      "notes": "May · Illinois · trail climb"
+    },
+    {
+      "runsignup_race_id": 70081,
+      "name": "MacDill's Paws 4 Heroes 5K",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "runsignup_event_id": 1078579,
+      "event_name_contains": "5k Run/Walk",
+      "event_name_excludes": "Virtual",
+      "priority": "required",
+      "notes": "April · Florida · warm"
+    },
+    {
+      "runsignup_race_id": 71280,
+      "name": "St Edward Run for the Braves 5K",
+      "distance_label": "5K",
+      "course_type": "rolling",
+      "elev_gain_ft": 120,
+      "elev_loss_ft": 120,
+      "event_name_contains": "5K Run Walk",
+      "event_name_excludes": "Vitrual",
+      "priority": "required",
+      "notes": "June · Kentucky · warm"
+    },
+    {
+      "runsignup_race_id": 70404,
+      "name": "Alpenfest 5K Run",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "Alpenfest 5K Run/Walk",
+      "priority": "required",
+      "notes": "July · Michigan · warm"
+    },
+    {
+      "runsignup_race_id": 71640,
+      "name": "OLD TOWNE 5K",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "runsignup_event_id": 295509,
+      "event_name_contains": "5K",
+      "priority": "required",
+      "notes": "August · Texas · hot"
+    },
+    {
+      "runsignup_race_id": 70550,
+      "name": "Hometown Heroes 5K",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5K Adult Individual",
+      "priority": "required",
+      "notes": "September · Florida · warm"
+    },
+    {
+      "runsignup_race_id": 68916,
+      "name": "MEDIO MARATON PALOS GARZA",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5K",
+      "event_name_excludes": "3K",
+      "priority": "required",
+      "notes": "November · warm climate"
+    },
+    {
+      "runsignup_race_id": 70186,
+      "name": "Medal Madness New Year 10K",
+      "distance_label": "10K",
+      "course_type": "flat",
+      "elev_gain_ft": 75,
+      "elev_loss_ft": 75,
+      "event_name_contains": "10K",
+      "priority": "required",
+      "notes": "January · Pennsylvania · cold"
+    },
+    {
+      "runsignup_race_id": 68871,
+      "name": "Dash Point Trail Run",
+      "distance_label": "10K",
+      "course_type": "rolling",
+      "elev_gain_ft": 250,
+      "elev_loss_ft": 250,
+      "event_name_contains": "10K",
+      "event_name_excludes": "Brunch",
+      "priority": "required",
+      "notes": "March · Washington · mixed trail"
     },
     {
       "runsignup_race_id": 68200,
@@ -51,7 +184,8 @@
       "elev_gain_ft": 200,
       "elev_loss_ft": 200,
       "event_name_contains": "10K",
-      "priority": "required"
+      "priority": "required",
+      "notes": "October · Arkansas · mild"
     },
     {
       "runsignup_race_id": 68414,
@@ -61,17 +195,42 @@
       "elev_gain_ft": 400,
       "elev_loss_ft": 100,
       "event_name_contains": "10K",
-      "priority": "required"
+      "priority": "required",
+      "notes": "October · California · hilly"
     },
     {
-      "runsignup_race_id": 68088,
-      "name": "Scary Run",
-      "distance_label": "Half",
+      "runsignup_race_id": 68916,
+      "name": "MEDIO MARATON PALOS GARZA",
+      "distance_label": "10K",
+      "course_type": "flat",
+      "elev_gain_ft": 75,
+      "elev_loss_ft": 75,
+      "event_name_contains": "10K",
+      "priority": "required",
+      "notes": "November · warm climate"
+    },
+    {
+      "runsignup_race_id": 70039,
+      "name": "Woodside Ramble 2018",
+      "distance_label": "10K",
       "course_type": "rolling",
-      "elev_gain_ft": 400,
-      "elev_loss_ft": 400,
-      "event_name_contains": "Half",
-      "priority": "required"
+      "elev_gain_ft": 300,
+      "elev_loss_ft": 300,
+      "event_name_contains": "10K",
+      "priority": "required",
+      "notes": "December · California · cool/wet season"
+    },
+    {
+      "runsignup_race_id": 72232,
+      "name": "Publix Florida Marathon",
+      "distance_label": "Half",
+      "course_type": "flat",
+      "elev_gain_ft": 75,
+      "elev_loss_ft": 75,
+      "event_name_contains": "Half Marathon",
+      "event_name_excludes": "Full",
+      "priority": "required",
+      "notes": "February · Florida · warm"
     },
     {
       "runsignup_race_id": 68333,
@@ -80,19 +239,32 @@
       "course_type": "rolling",
       "elev_gain_ft": 500,
       "elev_loss_ft": 500,
-      "event_name_contains": "Half",
-      "event_name_excludes": "Marathon",
-      "priority": "required"
+      "event_name_contains": "Half-Marathon",
+      "priority": "required",
+      "notes": "February · Arkansas · mixed"
     },
     {
-      "runsignup_race_id": 68414,
-      "name": "Oakland Hills 2018",
+      "runsignup_race_id": 74428,
+      "name": "Yakima River Canyon Marathon & Half Marathon",
       "distance_label": "Half",
-      "course_type": "uphill",
-      "elev_gain_ft": 800,
-      "elev_loss_ft": 200,
-      "event_name_contains": "Half",
-      "priority": "required"
+      "course_type": "rolling",
+      "elev_gain_ft": 450,
+      "elev_loss_ft": 450,
+      "event_name_contains": "Half Marathon",
+      "event_name_excludes": "Marathon",
+      "priority": "required",
+      "notes": "March · Washington · canyon rolling"
+    },
+    {
+      "runsignup_race_id": 68871,
+      "name": "Dash Point Trail Run",
+      "distance_label": "Half",
+      "course_type": "rolling",
+      "elev_gain_ft": 550,
+      "elev_loss_ft": 550,
+      "event_name_contains": "Half Marathon",
+      "priority": "required",
+      "notes": "March · Washington · mixed trail"
     },
     {
       "runsignup_race_id": 68489,
@@ -103,18 +275,75 @@
       "elev_loss_ft": 400,
       "event_name_contains": "Thousand Islands Half",
       "event_name_excludes": "Virtual",
-      "priority": "required"
+      "priority": "required",
+      "notes": "May · New York · net downhill"
     },
     {
-      "runsignup_race_id": 69428,
-      "name": "FITTEAM PALM BEACHES MARATHON",
+      "runsignup_race_id": 68088,
+      "name": "Scary Run",
+      "distance_label": "Half",
+      "course_type": "rolling",
+      "elev_gain_ft": 400,
+      "elev_loss_ft": 400,
+      "event_name_contains": "Half",
+      "priority": "required",
+      "notes": "October · Washington · mixed"
+    },
+    {
+      "runsignup_race_id": 68414,
+      "name": "Oakland Hills 2018",
+      "distance_label": "Half",
+      "course_type": "uphill",
+      "elev_gain_ft": 800,
+      "elev_loss_ft": 200,
+      "event_name_contains": "Half",
+      "priority": "required",
+      "notes": "October · California · hilly"
+    },
+    {
+      "runsignup_race_id": 69043,
+      "name": "Grand Ridge Trail Run",
+      "distance_label": "Half",
+      "course_type": "uphill",
+      "elev_gain_ft": 1200,
+      "elev_loss_ft": 1200,
+      "event_name_contains": "Half Marathon",
+      "priority": "required",
+      "notes": "November · Washington · trail climb"
+    },
+    {
+      "runsignup_race_id": 70039,
+      "name": "Woodside Ramble 2018",
+      "distance_label": "Half",
+      "course_type": "rolling",
+      "elev_gain_ft": 900,
+      "elev_loss_ft": 900,
+      "event_name_contains": "Half Marathon",
+      "priority": "required",
+      "notes": "December · California · cool season"
+    },
+    {
+      "runsignup_race_id": 72232,
+      "name": "Publix Florida Marathon",
       "distance_label": "Marathon",
       "course_type": "flat",
       "elev_gain_ft": 100,
       "elev_loss_ft": 100,
+      "event_name_contains": "Full Marathon",
+      "priority": "required",
+      "notes": "February · Florida · warm"
+    },
+    {
+      "runsignup_race_id": 74428,
+      "name": "Yakima River Canyon Marathon & Half Marathon",
+      "distance_label": "Marathon",
+      "course_type": "rolling",
+      "elev_gain_ft": 800,
+      "elev_loss_ft": 800,
       "event_name_contains": "Marathon",
       "event_name_excludes": "Half",
-      "priority": "required"
+      "priority": "required",
+      "notes": "March · Washington · canyon rolling"
     },
     {
       "runsignup_race_id": 70431,
@@ -125,7 +354,20 @@
       "elev_loss_ft": 600,
       "event_name_contains": "Marathon",
       "event_name_excludes": "Half",
-      "priority": "required"
+      "priority": "required",
+      "notes": "May · Washington · mixed"
+    },
+    {
+      "runsignup_race_id": 69428,
+      "name": "FITTEAM PALM BEACHES MARATHON",
+      "distance_label": "Marathon",
+      "course_type": "flat",
+      "elev_gain_ft": 100,
+      "elev_loss_ft": 100,
+      "event_name_contains": "Marathon",
+      "event_name_excludes": "Half",
+      "priority": "required",
+      "notes": "November · Florida · warm"
     }
   ]
 }

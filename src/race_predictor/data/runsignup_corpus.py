@@ -18,7 +18,7 @@ from race_predictor.data.runsignup_client import (
     RunSignupRace,
     RunSignupResult,
 )
-from race_predictor.data.weather import fetch_race_day_weather
+from race_predictor.data.weather import fetch_race_day_weather, geocode_us_city
 from race_predictor.units import meters_to_miles
 
 DEFAULT_CATALOG_PATH = Path("catalog/races.json")
@@ -43,7 +43,25 @@ CORPUS_CSV_COLUMNS = [
 
 MIN_FINISHERS_PER_DISTANCE = 50
 MIN_RACES_PER_DISTANCE = 2
+MIN_MONTHS_WITH_FINISHERS = 8
 MAX_FINISHERS_PER_EVENT = 1000
+
+TEMP_BAND_COLD_F = 45.0
+TEMP_BAND_WARM_F = 65.0
+MONTH_LABELS = (
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+)
 
 
 @dataclass(frozen=True)
@@ -56,6 +74,8 @@ class CatalogRace:
     elev_loss_ft: float
     event_name_contains: str | None = None
     event_name_excludes: str | None = None
+    runsignup_event_id: int | None = None
+    typical_temp_f: float | None = None
     priority: str = "required"
 
 
@@ -78,6 +98,8 @@ class CoverageReport:
     total_races_synced: int = 0
     by_distance: dict[str, dict[str, int]] = field(default_factory=dict)
     by_course_type: dict[str, int] = field(default_factory=dict)
+    by_month: dict[str, int] = field(default_factory=dict)
+    by_temp_band: dict[str, int] = field(default_factory=dict)
     gaps: list[str] = field(default_factory=list)
     race_stats: list[dict[str, object]] = field(default_factory=list)
     passed: bool = False
@@ -99,6 +121,16 @@ def load_catalog(path: str | Path = DEFAULT_CATALOG_PATH) -> list[CatalogRace]:
                 elev_loss_ft=float(entry["elev_loss_ft"]),
                 event_name_contains=entry.get("event_name_contains"),
                 event_name_excludes=entry.get("event_name_excludes"),
+                runsignup_event_id=(
+                    int(entry["runsignup_event_id"])
+                    if entry.get("runsignup_event_id") is not None
+                    else None
+                ),
+                typical_temp_f=(
+                    float(entry["typical_temp_f"])
+                    if entry.get("typical_temp_f") is not None
+                    else None
+                ),
                 priority=str(entry.get("priority", "required")),
             )
         )
@@ -136,7 +168,7 @@ def sync_corpus(
             stats.event_id = event.event_id
             stats.event_name = event.name
             race_date = parse_race_date(race)
-            temp_f = fetch_race_temp(race, race_date)
+            temp_f = fetch_race_temp(race, race_date, entry)
             results = client.get_event_results(
                 entry.runsignup_race_id,
                 event.event_id,
@@ -171,6 +203,11 @@ def sync_corpus(
 
 
 def select_event(events: list[RunSignupEvent], entry: CatalogRace) -> RunSignupEvent | None:
+    if entry.runsignup_event_id is not None:
+        for event in events:
+            if event.event_id == entry.runsignup_event_id:
+                return event
+
     candidates = list(events)
     if entry.event_name_contains:
         needle = entry.event_name_contains.lower()
@@ -235,15 +272,26 @@ def parse_race_date(race: RunSignupRace) -> datetime:
     return datetime.now()
 
 
-def fetch_race_temp(race: RunSignupRace, race_date: datetime) -> float | None:
-    if race.latitude is None or race.longitude is None:
-        return None
-    weather = fetch_race_day_weather(
-        race.latitude,
-        race.longitude,
-        race_date.date(),
-    )
-    return weather.temp_f
+def fetch_race_temp(
+    race: RunSignupRace,
+    race_date: datetime,
+    entry: CatalogRace | None = None,
+) -> float | None:
+    latitude = race.latitude
+    longitude = race.longitude
+    if latitude is None or longitude is None:
+        coords = geocode_us_city(race.city, race.state)
+        if coords is not None:
+            latitude, longitude = coords
+
+    if latitude is not None and longitude is not None:
+        weather = fetch_race_day_weather(latitude, longitude, race_date.date())
+        if weather.source != "model_default":
+            return weather.temp_f
+
+    if entry is not None and entry.typical_temp_f is not None:
+        return entry.typical_temp_f
+    return None
 
 
 def results_to_runs(
@@ -301,6 +349,16 @@ def results_to_runs(
     return runs, skipped
 
 
+def temp_band(temp_f: float | None) -> str | None:
+    if temp_f is None:
+        return None
+    if temp_f < TEMP_BAND_COLD_F:
+        return "cold"
+    if temp_f > TEMP_BAND_WARM_F:
+        return "warm"
+    return "mild"
+
+
 def build_coverage_report(
     runs: list[Run],
     race_stats: list[RaceSyncStats],
@@ -309,6 +367,15 @@ def build_coverage_report(
         label: {"finishers": 0, "races": 0} for label in RACE_DISTANCES_MI
     }
     by_course_type: dict[str, int] = {}
+    by_month: dict[str, int] = {label: 0 for label in MONTH_LABELS}
+    by_temp_band: dict[str, int] = {"cold": 0, "mild": 0, "warm": 0}
+
+    for run in runs:
+        month_label = MONTH_LABELS[run.date.month - 1]
+        by_month[month_label] = by_month.get(month_label, 0) + 1
+        band = temp_band(run.temp_f)
+        if band is not None:
+            by_temp_band[band] = by_temp_band.get(band, 0) + 1
 
     for stats in race_stats:
         if stats.error or stats.finishers == 0:
@@ -336,11 +403,24 @@ def build_coverage_report(
         if by_course_type.get(course_type, 0) == 0:
             gaps.append(f"course_type '{course_type}': no finishers collected")
 
+    months_with_finishers = sum(1 for count in by_month.values() if count > 0)
+    if months_with_finishers < MIN_MONTHS_WITH_FINISHERS:
+        gaps.append(
+            f"calendar: only {months_with_finishers} months with finishers "
+            f"(need {MIN_MONTHS_WITH_FINISHERS})"
+        )
+
+    for band in ("cold", "mild", "warm"):
+        if by_temp_band.get(band, 0) == 0:
+            gaps.append(f"temperature '{band}': no finishers collected")
+
     return CoverageReport(
         total_finishers=len(runs),
         total_races_synced=sum(1 for stats in race_stats if stats.finishers > 0),
         by_distance=by_distance,
         by_course_type=by_course_type,
+        by_month=by_month,
+        by_temp_band=by_temp_band,
         gaps=gaps,
         race_stats=[asdict(stats) for stats in race_stats],
         passed=len(gaps) == 0 and len(runs) > 0,
@@ -383,6 +463,8 @@ def write_coverage_report(report: CoverageReport, output_path: str | Path) -> No
                 "total_races_synced": report.total_races_synced,
                 "by_distance": report.by_distance,
                 "by_course_type": report.by_course_type,
+                "by_month": report.by_month,
+                "by_temp_band": report.by_temp_band,
                 "gaps": report.gaps,
                 "passed": report.passed,
                 "race_stats": report.race_stats,
@@ -409,6 +491,14 @@ def format_coverage_summary(report: CoverageReport) -> str:
     lines.append("By course type:")
     for course_type, count in sorted(report.by_course_type.items()):
         lines.append(f"  {course_type:<10} {count:>5} finishers")
+    lines.append("")
+    lines.append("By month:")
+    for month in MONTH_LABELS:
+        lines.append(f"  {month:<4} {report.by_month.get(month, 0):>5} finishers")
+    lines.append("")
+    lines.append("By temperature:")
+    for band in ("cold", "mild", "warm"):
+        lines.append(f"  {band:<6} {report.by_temp_band.get(band, 0):>5} finishers")
     if report.gaps:
         lines.append("")
         lines.append("Coverage gaps:")
