@@ -1,0 +1,14 @@
+{
+  "races": [
+    {
+      "runsignup_race_id": 74589,
+      "name": "Cambridge Half Marathon + 5K",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5K",
+      "priority": "required"
+    }
+  ]
+}

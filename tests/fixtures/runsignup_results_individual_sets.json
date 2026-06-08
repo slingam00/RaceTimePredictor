@@ -1,0 +1,29 @@
+{
+  "individual_results_sets": [
+    {
+      "individual_result_set_id": 144346,
+      "individual_result_set_name": "5K Run",
+      "public_results": "T",
+      "results": [
+        {
+          "result_id": 31258816,
+          "place": 1,
+          "bib": 400,
+          "first_name": "Jack",
+          "last_name": "Cook",
+          "clock_time": "20:58.6",
+          "chip_time": "20:56"
+        },
+        {
+          "result_id": 31260216,
+          "place": 2,
+          "bib": 83,
+          "first_name": "Michel",
+          "last_name": "Dahan",
+          "clock_time": "22:19.7",
+          "chip_time": "22:19.7"
+        }
+      ]
+    }
+  ]
+}

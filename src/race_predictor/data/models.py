@@ -47,10 +47,13 @@ class TrainedModel:
     feature_names: list[str]
     default_temp_f: float
     residual_stats: dict[str, dict[str, float]] | None = None
+    training_mode: str = "athlete"
 
     def __post_init__(self) -> None:
         if self.residual_stats is None:
             self.residual_stats = {}
+        if not getattr(self, "training_mode", None):
+            self.training_mode = "athlete"
 
 
 @dataclass(frozen=True)

@@ -11,13 +11,25 @@ from race_predictor.confidence.scoring import confidence_score, prediction_inter
 from race_predictor.data.models import RacePrediction, Run, TrainedModel
 from race_predictor.features.fitness import compute_fitness_features
 from race_predictor.models.baseline import predict_baseline
+from race_predictor.models.population import (
+    predict_population_residual,
+    train_population_residual_model,
+)
 from race_predictor.models.residual import predict_residual, train_residual_model
 
 DEFAULT_MODEL_PATH = Path("models/trained_model.pkl")
 
 
-def train(runs: list[Run], model_path: str | Path = DEFAULT_MODEL_PATH) -> TrainedModel:
-    model = train_residual_model(runs)
+def train(
+    runs: list[Run],
+    model_path: str | Path = DEFAULT_MODEL_PATH,
+    *,
+    population: bool = False,
+) -> TrainedModel:
+    if population:
+        model = train_population_residual_model(runs)
+    else:
+        model = train_residual_model(runs)
     path = Path(model_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("wb") as handle:
@@ -25,9 +37,19 @@ def train(runs: list[Run], model_path: str | Path = DEFAULT_MODEL_PATH) -> Train
     return model
 
 
+def train_population(
+    runs: list[Run],
+    model_path: str | Path = DEFAULT_MODEL_PATH,
+) -> TrainedModel:
+    return train(runs, model_path, population=True)
+
+
 def load_model(model_path: str | Path = DEFAULT_MODEL_PATH) -> TrainedModel:
     with Path(model_path).open("rb") as handle:
-        return pickle.load(handle)
+        model = pickle.load(handle)
+    if not getattr(model, "training_mode", None):
+        model.training_mode = "athlete"
+    return model
 
 
 def predict_race(
@@ -53,11 +75,22 @@ def predict_race(
         return None
 
     features = compute_fitness_features(prior, as_of, distance_label)
-    residual = predict_residual(
-        model,
-        features,
-        baseline.distance_mi,
-    )
+    if model.training_mode == "population":
+        residual = predict_population_residual(
+            model,
+            prior,
+            as_of,
+            distance_label,
+            elev_gain_ft,
+            elev_loss_ft,
+            temp_f,
+        )
+    else:
+        residual = predict_residual(
+            model,
+            features,
+            baseline.distance_mi,
+        )
     predicted = max(0.0, baseline.predicted_time_sec + residual)
     pace = (predicted / 60.0) / baseline.distance_mi
     low, high = prediction_interval(model, distance_label, predicted, features)

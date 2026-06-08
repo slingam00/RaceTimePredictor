@@ -11,3 +11,5 @@ venv/
 .env
 .DS_Store
 /models
+/catalog/cache/
+/reports/corpus_coverage.json

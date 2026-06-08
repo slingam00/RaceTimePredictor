@@ -1,0 +1,34 @@
+{
+  "results": [
+    {
+      "result": {
+        "registration_id": 9001,
+        "bib": 101,
+        "place": 1,
+        "first_name": "Alex",
+        "last_name": "Runner",
+        "clock_time": "00:18:30"
+      }
+    },
+    {
+      "result": {
+        "registration_id": 9002,
+        "bib": 102,
+        "place": 2,
+        "first_name": "Blair",
+        "last_name": "Jogger",
+        "clock_time": "00:19:15"
+      }
+    },
+    {
+      "result": {
+        "registration_id": 9003,
+        "bib": 103,
+        "place": 3,
+        "first_name": "Casey",
+        "last_name": "Strider",
+        "clock_time": "00:20:00"
+      }
+    }
+  ]
+}

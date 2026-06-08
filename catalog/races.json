@@ -1,0 +1,131 @@
+{
+  "description": "RunSignup races with published public finisher results (verified via API).",
+  "races": [
+    {
+      "runsignup_race_id": 70191,
+      "name": "Bakersfield Donut Run",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5k",
+      "event_name_excludes": "Virtual",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 70186,
+      "name": "Medal Madness New Year 5K",
+      "distance_label": "5K",
+      "course_type": "flat",
+      "elev_gain_ft": 50,
+      "elev_loss_ft": 50,
+      "event_name_contains": "5K",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68489,
+      "name": "Thousand Islands Half Marathon, 10K & 5K",
+      "distance_label": "5K",
+      "course_type": "rolling",
+      "elev_gain_ft": 150,
+      "elev_loss_ft": 150,
+      "event_name_contains": "Thousand Islands 5K",
+      "event_name_excludes": "Virtual",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68478,
+      "name": "Buffalo Trace Trail Race",
+      "distance_label": "5K",
+      "course_type": "uphill",
+      "elev_gain_ft": 350,
+      "elev_loss_ft": 50,
+      "event_name_contains": "Buffalo Trace",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68200,
+      "name": "Survivors' Challenge",
+      "distance_label": "10K",
+      "course_type": "rolling",
+      "elev_gain_ft": 200,
+      "elev_loss_ft": 200,
+      "event_name_contains": "10K",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68414,
+      "name": "Oakland Hills 2018",
+      "distance_label": "10K",
+      "course_type": "uphill",
+      "elev_gain_ft": 400,
+      "elev_loss_ft": 100,
+      "event_name_contains": "10K",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68088,
+      "name": "Scary Run",
+      "distance_label": "Half",
+      "course_type": "rolling",
+      "elev_gain_ft": 400,
+      "elev_loss_ft": 400,
+      "event_name_contains": "Half",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68333,
+      "name": "Papa Loco Marathon And Half Marathon",
+      "distance_label": "Half",
+      "course_type": "rolling",
+      "elev_gain_ft": 500,
+      "elev_loss_ft": 500,
+      "event_name_contains": "Half",
+      "event_name_excludes": "Marathon",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68414,
+      "name": "Oakland Hills 2018",
+      "distance_label": "Half",
+      "course_type": "uphill",
+      "elev_gain_ft": 800,
+      "elev_loss_ft": 200,
+      "event_name_contains": "Half",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 68489,
+      "name": "Thousand Islands Half Marathon, 10K & 5K",
+      "distance_label": "Half",
+      "course_type": "downhill",
+      "elev_gain_ft": 200,
+      "elev_loss_ft": 400,
+      "event_name_contains": "Thousand Islands Half",
+      "event_name_excludes": "Virtual",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 69428,
+      "name": "FITTEAM PALM BEACHES MARATHON",
+      "distance_label": "Marathon",
+      "course_type": "flat",
+      "elev_gain_ft": 100,
+      "elev_loss_ft": 100,
+      "event_name_contains": "Marathon",
+      "event_name_excludes": "Half",
+      "priority": "required"
+    },
+    {
+      "runsignup_race_id": 70431,
+      "name": "Tacoma City Marathon",
+      "distance_label": "Marathon",
+      "course_type": "rolling",
+      "elev_gain_ft": 600,
+      "elev_loss_ft": 600,
+      "event_name_contains": "Marathon",
+      "event_name_excludes": "Half",
+      "priority": "required"
+    }
+  ]
+}

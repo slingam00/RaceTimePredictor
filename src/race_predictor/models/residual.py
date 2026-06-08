@@ -49,7 +49,15 @@ def build_training_rows(runs: list[Run]) -> tuple[np.ndarray, np.ndarray, list[d
         if label is None:
             continue
 
-        prior = [run for run in runs if run.date < holdout.date]
+        prior = [
+            run
+            for run in runs
+            if run.date < holdout.date
+            and (
+                holdout.athlete_id == "default"
+                or run.athlete_id == holdout.athlete_id
+            )
+        ]
         if len(prior) < 3:
             continue
 
@@ -123,6 +131,7 @@ def train_residual_model(runs: list[Run]) -> TrainedModel:
             feature_names=FEATURE_NAMES.copy(),
             default_temp_f=default_temp,
             residual_stats={},
+            training_mode="athlete",
         )
 
     model = GradientBoostingRegressor(
@@ -141,6 +150,7 @@ def train_residual_model(runs: list[Run]) -> TrainedModel:
         feature_names=FEATURE_NAMES.copy(),
         default_temp_f=default_temp,
         residual_stats=stats,
+        training_mode="athlete",
     )
 
 

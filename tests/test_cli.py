@@ -45,11 +45,26 @@ def test_predict_rejects_invalid_as_of(runner, tmp_path, as_of: str):
     assert "is invalid" in result.output
 
 
+def test_train_population_from_corpus(runner, tmp_path):
+    corpus = Path("benchmarks/runsignup_corpus.csv")
+    if not corpus.exists():
+        pytest.skip("runsignup corpus not present")
+
+    model_path = tmp_path / "population.pkl"
+    result = runner.invoke(
+        main,
+        ["train", "--population", "--corpus", str(corpus), "--model-path", str(model_path)],
+    )
+    assert result.exit_code == 0, result.output
+    assert "population" in result.output.lower()
+    assert model_path.exists()
+
+
 def test_train_requires_activities_csv(runner, tmp_path):
     data_dir = tmp_path / "data"
     data_dir.mkdir()
 
-    result = runner.invoke(main, ["train", "--data-dir", str(data_dir)])
+    result = runner.invoke(main, ["train", "--athlete", "--data-dir", str(data_dir)])
     assert result.exit_code != 0
     assert "No activities.csv found" in result.output
 
@@ -172,7 +187,10 @@ def test_cli_train_predict_evaluate(runner, tmp_path):
     model_path = tmp_path / "model.pkl"
     report_path = tmp_path / "backtest.json"
 
-    result = runner.invoke(main, ["train", "--data-dir", str(DATA_DIR), "--model-path", str(model_path)])
+    result = runner.invoke(
+        main,
+        ["train", "--athlete", "--data-dir", str(DATA_DIR), "--model-path", str(model_path)],
+    )
     assert result.exit_code == 0, result.output
     assert model_path.exists()
 
