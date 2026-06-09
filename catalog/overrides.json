@@ -1,0 +1,29 @@
+{
+  "description": "Manual elevation overrides for upcoming races when GPX is unavailable.",
+  "races": [
+    {
+      "runsignup_race_id": 72232,
+      "name": "Publix Florida Marathon",
+      "course_type": "flat",
+      "elev_gain_ft": 100,
+      "elev_loss_ft": 100,
+      "notes": "February · West Palm Beach · warm"
+    },
+    {
+      "runsignup_race_id": 146508,
+      "name": "Bridge to Brew Half Marathon and 5K",
+      "course_type": "rolling",
+      "elev_gain_ft": 150,
+      "elev_loss_ft": 150,
+      "notes": "August · Port Huron · riverfront rolling"
+    },
+    {
+      "runsignup_race_id": 70431,
+      "name": "Tacoma City Marathon",
+      "course_type": "rolling",
+      "elev_gain_ft": 600,
+      "elev_loss_ft": 600,
+      "notes": "May · Washington · mixed urban"
+    }
+  ]
+}
