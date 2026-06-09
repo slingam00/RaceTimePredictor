@@ -29,12 +29,15 @@ race-predictor train --athlete --data-dir data/
 race-predictor sync-corpus
 race-predictor train --population
 
-# Predict all four distances for a race (uses your Strava history + trained model)
+# Predict all four distances with manual course conditions
 race-predictor predict \
   --elev-gain-ft 492 \
   --elev-loss-ft 492 \
   --temp-f 72 \
   --as-of 2026-06-01
+
+# Predict by RunSignup race ID (fetches elevation + weather automatically)
+race-predictor predict --race-id 146508
 
 # Run time-series backtest (single athlete)
 race-predictor evaluate --data-dir data/ --output reports/backtest.json
@@ -136,9 +139,58 @@ Each entry in `catalog/races.json` specifies:
 
 Race-day temperatures come from [Open-Meteo](https://open-meteo.com/): city/state is geocoded when RunSignup does not provide coordinates, then historical archive data is used for past race dates.
 
-## Web UI
+## Phase 4 — Race discovery and predict-by-race
 
-A Next.js frontend (`web/`) talks to a FastAPI backend (`api/`):
+Discover upcoming races on RunSignup, enrich them with course elevation and forecast weather, and predict times from your Strava fitness baseline plus the population-trained residual model.
+
+### Workflow
+
+```bash
+# 1. Train the population model (required for predict-by-race)
+race-predictor sync-corpus
+race-predictor train --population
+
+# 2. Predict by RunSignup race ID
+race-predictor predict --race-id 146508
+
+# Optional: single distance within a multi-event race
+race-predictor predict --race-id 146508 --event-id 1140659
+
+# Manual conditions still work (no RunSignup lookup)
+race-predictor predict --elev-gain-ft 200 --elev-loss-ft 200 --temp-f 55
+```
+
+`--race-id` fetches race metadata from RunSignup, resolves elevation (bundled GPX → remote GPX link → `catalog/overrides.json`), and looks up race-day temperature via Open-Meteo. Results include 80% prediction intervals and per-distance confidence scores.
+
+Search only returns **upcoming races** (today onward). Past races are excluded at the API, CLI enrichment, and web UI layers.
+
+### API
+
+```bash
+uvicorn api.main:app --reload --port 8000
+```
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/races/search` | Search upcoming races (`query`, `city`, `state`, `start_date`, pagination) |
+| `GET /api/races/{race_id}` | Enriched race detail (elevation, weather, offered distances) |
+| `POST /api/predict` | Predict by `race_id` or manual `elev_gain_ft` / `elev_loss_ft` / `temp_f` |
+
+A population model (`models/trained_model.pkl`) is required for API predictions; athlete-only auto-training is not used when predicting by race.
+
+### Enrichment sources
+
+| Priority | Elevation | Weather |
+|----------|-----------|---------|
+| 1 | Bundled `catalog/gpx/{race_id}.gpx` | Open-Meteo forecast for upcoming race date |
+| 2 | GPX link on RunSignup race page | Geocoded city/state when coordinates are missing |
+| 3 | `catalog/overrides.json` manual entry | Model default temperature as fallback |
+
+Enriched races are cached for 24 hours under `catalog/cache/` (gitignored).
+
+### Web UI
+
+The Next.js frontend (`web/`) talks to the FastAPI backend (`api/`):
 
 ```bash
 # Terminal 1 — API (requires data/activities.csv)
@@ -148,13 +200,16 @@ uvicorn api.main:app --reload --port 8000
 cd web && npm install && npm run dev
 ```
 
-Open `http://localhost:3000`, enter elevation and temperature, and get predictions for all four distances. Train a population model via CLI first (`sync-corpus` + `train --population`); the API auto-trains athlete mode only when no model file exists.
+Open `http://localhost:3000`, search for an upcoming race, and get predictions on the race detail page. A collapsible manual-entry form remains as a fallback when elevation or weather cannot be resolved automatically. Train a population model via CLI first (`sync-corpus` + `train --population`).
 
 ## Project layout
 
 ```
 catalog/
-  races.json              # Curated RunSignup race catalog
+  races.json              # Curated RunSignup race catalog (sync-corpus)
+  overrides.json          # Manual elevation overrides for discovery races
+  gpx/                    # Optional bundled GPX course files
+  cache/                  # Enrichment cache (gitignored)
 benchmarks/
   runsignup_corpus.csv    # Synced finisher training corpus
   sample_corpus.csv       # Small example for Phase 2 benchmark
@@ -168,7 +223,7 @@ src/race_predictor/
 ├── models/               # VDOT, Riegel, residual, population trainer, predictor
 ├── confidence/           # Confidence scores and intervals
 ├── evaluate/             # Backtest + athlete-level benchmark
-└── cli.py                # train / predict / sync-corpus / evaluate / benchmark
+└── cli.py                # train / predict / sync-corpus / evaluate / benchmark / runsignup-login
 ```
 
 ## Python API

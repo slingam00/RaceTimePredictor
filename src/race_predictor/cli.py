@@ -11,6 +11,12 @@ import click
 
 from race_predictor.data.benchmark_loader import load_benchmark_corpus
 from race_predictor.data.loader import load_runs
+from race_predictor.data.race_enrichment import (
+    DEFAULT_CACHE_DIR,
+    DEFAULT_GPX_DIR,
+    DEFAULT_OVERRIDES_PATH,
+    enrich_race,
+)
 from race_predictor.data.runsignup_client import (
     RunSignupClient,
     RunSignupError,
@@ -36,6 +42,7 @@ from race_predictor.models.predictor import (
     DEFAULT_MODEL_PATH,
     load_model,
     predict_all,
+    predict_race,
     train,
     train_population,
 )
@@ -73,17 +80,59 @@ def _validate_race_conditions(
         )
 
 
-def _parse_as_of_date(as_of: str) -> datetime:
+def _format_interval(low_sec: float, high_sec: float) -> str:
+    return f"{format_time(low_sec)} – {format_time(high_sec)}"
+
+
+def _parse_as_of_date(as_of: str) -> date:
     if not _AS_OF_DATE_RE.match(as_of):
         raise click.ClickException(
             f"The date {as_of!r} is invalid. Use YYYY-MM-DD (e.g. 2026-06-15)."
         )
     try:
-        return datetime.strptime(as_of, "%Y-%m-%d")
+        return datetime.strptime(as_of, "%Y-%m-%d").date()
     except ValueError as exc:
         raise click.ClickException(
             f"The date {as_of!r} is invalid. Use YYYY-MM-DD (e.g. 2026-06-15)."
         ) from exc
+
+
+def _emit_predictions(
+    *,
+    race_name: str | None,
+    as_of_dt: datetime,
+    elev_gain_ft: float,
+    elev_loss_ft: float,
+    temp_f: float,
+    predictions: list,
+    warnings: list[str] | None = None,
+) -> None:
+    if race_name:
+        click.echo(f"\n{race_name}")
+    if warnings:
+        for warning in warnings:
+            click.echo(f"Warning: {warning}")
+    click.echo(
+        f"\nPredictions as of {as_of_dt.date()} "
+        f"(+{elev_gain_ft:.0f}/-{elev_loss_ft:.0f} ft, {temp_f:.1f}°F)\n"
+    )
+    click.echo(
+        f"{'Distance':<10} {'Predicted':<12} {'Pace':<12} "
+        f"{'80% Interval':<22} {'Conf'}"
+    )
+    click.echo("-" * 68)
+    for prediction in predictions:
+        interval = _format_interval(
+            prediction.interval_low_sec,
+            prediction.interval_high_sec,
+        )
+        click.echo(
+            f"{prediction.distance_label:<10} "
+            f"{format_time(prediction.predicted_time_sec):<12} "
+            f"{format_pace(prediction.pace_min_per_mi):<12} "
+            f"{interval:<22} "
+            f"{prediction.confidence}"
+        )
 
 
 @click.group()
@@ -261,8 +310,30 @@ def train_cmd(
 @main.command()
 @click.option("--data-dir", default="data", show_default=True, type=click.Path(exists=True))
 @click.option("--model-path", default=str(DEFAULT_MODEL_PATH), show_default=True)
-@click.option("--elev-gain-ft", required=True, type=float, help="Race elevation gain in feet.")
-@click.option("--elev-loss-ft", required=True, type=float, help="Race elevation loss in feet.")
+@click.option(
+    "--race-id",
+    type=int,
+    default=None,
+    help="RunSignup race ID; fetches course elevation and weather automatically.",
+)
+@click.option(
+    "--event-id",
+    type=int,
+    default=None,
+    help="Predict a single event distance when used with --race-id.",
+)
+@click.option(
+    "--elev-gain-ft",
+    default=None,
+    type=float,
+    help="Race elevation gain in feet (required without --race-id).",
+)
+@click.option(
+    "--elev-loss-ft",
+    default=None,
+    type=float,
+    help="Race elevation loss in feet (required without --race-id).",
+)
 @click.option("--temp-f", default=None, type=float, help="Race temperature in °F.")
 @click.option(
     "--as-of",
@@ -272,21 +343,36 @@ def train_cmd(
 def predict(
     data_dir: str,
     model_path: str,
-    elev_gain_ft: float,
-    elev_loss_ft: float,
+    race_id: int | None,
+    event_id: int | None,
+    elev_gain_ft: float | None,
+    elev_loss_ft: float | None,
     temp_f: float | None,
     as_of: str | None,
 ) -> None:
     """Predict race times for 5K, 10K, Half, and Marathon."""
-    as_of_dt: datetime | None = None
-    if as_of:
-        as_of_dt = _parse_as_of_date(as_of)
-        if as_of_dt.date() < date.today():
-            raise click.ClickException(
-                f"--as-of must be today ({date.today():%Y-%m-%d}) or a future date; got {as_of}."
-            )
+    if race_id is None and (elev_gain_ft is None or elev_loss_ft is None):
+        raise click.ClickException(
+            "--elev-gain-ft and --elev-loss-ft are required when --race-id is omitted."
+        )
+    if event_id is not None and race_id is None:
+        raise click.ClickException("--event-id requires --race-id.")
 
-    _validate_race_conditions(elev_gain_ft, elev_loss_ft, temp_f)
+    as_of_date: date | None = _parse_as_of_date(as_of) if as_of else None
+    if as_of_date is not None and as_of_date < date.today():
+        raise click.ClickException(
+            f"--as-of must be today ({date.today():%Y-%m-%d}) or a future date; got {as_of}."
+        )
+
+    if elev_gain_ft is not None or elev_loss_ft is not None:
+        _validate_race_conditions(
+            elev_gain_ft if elev_gain_ft is not None else 0.0,
+            elev_loss_ft if elev_loss_ft is not None else 0.0,
+            temp_f,
+        )
+    elif temp_f is not None:
+        _validate_race_conditions(0.0, 0.0, temp_f)
+
     csv_path = _require_activities_csv(data_dir)
     runs = load_runs(csv_path)
     if not runs:
@@ -294,36 +380,107 @@ def predict(
 
     model_path_obj = Path(model_path)
     if not model_path_obj.exists():
+        if race_id is not None:
+            raise click.ClickException(
+                "No trained model found. Run `race-predictor train --population` first."
+            )
         click.echo("No trained model found; training now...")
         model = train(runs, model_path)
     else:
         model = load_model(model_path)
 
-    if as_of_dt is None:
-        as_of_dt = runs[-1].date
+    race_name: str | None = None
+    warnings: list[str] = []
+    distance_labels: list[str] | None = None
 
-    predictions = predict_all(
-        runs,
-        model,
-        as_of_dt,
-        elev_gain_ft=elev_gain_ft,
-        elev_loss_ft=elev_loss_ft,
-        temp_f=temp_f,
+    if race_id is not None:
+        client = RunSignupClient()
+        try:
+            enriched = enrich_race(
+                client,
+                race_id,
+                as_of=as_of_date,
+                overrides_path=DEFAULT_OVERRIDES_PATH,
+                cache_dir=DEFAULT_CACHE_DIR,
+                gpx_dir=DEFAULT_GPX_DIR,
+            )
+        except RunSignupError as exc:
+            raise click.ClickException(str(exc)) from exc
+
+        race_name = enriched.name
+        warnings = list(enriched.warnings)
+        if elev_gain_ft is None:
+            elev_gain_ft = enriched.elev_gain_ft
+        if elev_loss_ft is None:
+            elev_loss_ft = enriched.elev_loss_ft
+        if temp_f is None and enriched.temp_f is not None:
+            temp_f = enriched.temp_f
+        if as_of_date is None:
+            as_of_date = enriched.race_date
+
+        if event_id is not None:
+            matching = [
+                event
+                for event in enriched.offered_events
+                if event.event_id == event_id
+            ]
+            if not matching:
+                raise click.ClickException(
+                    f"event_id {event_id} not found for race {race_id}."
+                )
+            distance_labels = [matching[0].distance_label]
+
+    if elev_gain_ft is None or elev_loss_ft is None:
+        raise click.ClickException(
+            "Elevation is unknown for this race. Provide --elev-gain-ft and --elev-loss-ft."
+        )
+    _validate_race_conditions(elev_gain_ft, elev_loss_ft, temp_f)
+
+    as_of_dt = (
+        datetime.combine(as_of_date, datetime.min.time())
+        if as_of_date is not None
+        else runs[-1].date
     )
+    if temp_f is None:
+        temp_f = model.default_temp_f
+
+    if distance_labels:
+        predictions = []
+        for label in distance_labels:
+            prediction = predict_race(
+                runs,
+                model,
+                as_of_dt,
+                label,
+                elev_gain_ft=elev_gain_ft,
+                elev_loss_ft=elev_loss_ft,
+                temp_f=temp_f,
+            )
+            if prediction is not None:
+                predictions.append(prediction)
+    else:
+        predictions = predict_all(
+            runs,
+            model,
+            as_of_dt,
+            elev_gain_ft=elev_gain_ft,
+            elev_loss_ft=elev_loss_ft,
+            temp_f=temp_f,
+        )
     if not predictions:
         raise click.ClickException(
             "Could not produce predictions — insufficient training data in the lookback window."
         )
 
-    click.echo(f"\nPredictions as of {as_of_dt.date()} (US customary units)\n")
-    click.echo(f"{'Distance':<10} {'Predicted Time':<14} {'Pace':<12}")
-    click.echo("-" * 38)
-    for p in predictions:
-        click.echo(
-            f"{p.distance_label:<10} "
-            f"{format_time(p.predicted_time_sec):<14} "
-            f"{format_pace(p.pace_min_per_mi):<12}"
-        )
+    _emit_predictions(
+        race_name=race_name,
+        as_of_dt=as_of_dt,
+        elev_gain_ft=elev_gain_ft,
+        elev_loss_ft=elev_loss_ft,
+        temp_f=temp_f,
+        predictions=predictions,
+        warnings=warnings or None,
+    )
 
 
 @main.command("evaluate")

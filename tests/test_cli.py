@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
@@ -9,6 +10,8 @@ import pytest
 from click.testing import CliRunner
 
 from race_predictor.cli import main
+from race_predictor.data.models import RacePrediction
+from race_predictor.data.race_enrichment import EnrichedRace
 
 DATA_DIR = Path("data")
 
@@ -67,6 +70,103 @@ def test_train_requires_activities_csv(runner, tmp_path):
     result = runner.invoke(main, ["train", "--athlete", "--data-dir", str(data_dir)])
     assert result.exit_code != 0
     assert "No activities.csv found" in result.output
+
+
+def test_predict_requires_elevation_without_race_id(runner):
+    result = runner.invoke(main, ["predict", "--data-dir", "data"])
+    assert result.exit_code != 0
+    assert "--elev-gain-ft and --elev-loss-ft are required" in result.output
+
+
+@patch("race_predictor.cli.predict_all")
+@patch("race_predictor.cli.enrich_race")
+@patch("race_predictor.cli.load_model")
+def test_predict_by_race_id(mock_load_model, mock_enrich, mock_predict_all, runner, tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "activities.csv").write_text(
+        "Activity Type,Activity Date,Distance,Moving Time,Activity Name\n"
+        "Run,\"Jun 1, 2026\",5000,1200,Morning Run\n",
+        encoding="utf-8",
+    )
+    model_path = tmp_path / "model.pkl"
+    model_path.write_bytes(b"placeholder")
+
+    mock_load_model.return_value = type("Model", (), {"default_temp_f": 60.0})()
+    mock_enrich.return_value = EnrichedRace(
+        race_id=146508,
+        name="Bridge to Brew",
+        city="Port Huron",
+        state="MI",
+        race_date=date(2026, 8, 9),
+        elev_gain_ft=150,
+        elev_loss_ft=150,
+        elev_source="override",
+        temp_f=74.0,
+        weather_source="typical",
+        offered_events=[],
+        warnings=[],
+    )
+    mock_predict_all.return_value = [
+        RacePrediction(
+            distance_label="5K",
+            distance_mi=3.1,
+            baseline_time_sec=1800,
+            residual_sec=0,
+            predicted_time_sec=1800,
+            vdot_time_sec=1800,
+            riegel_time_sec=1800,
+            pace_min_per_mi=9.6,
+            interval_low_sec=1750,
+            interval_high_sec=1850,
+            confidence=82,
+        )
+    ]
+
+    result = runner.invoke(
+        main,
+        [
+            "predict",
+            "--data-dir",
+            str(data_dir),
+            "--model-path",
+            str(model_path),
+            "--race-id",
+            "146508",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert "Bridge to Brew" in result.output
+    assert "5K" in result.output
+    assert "82" in result.output
+    mock_enrich.assert_called_once()
+    mock_predict_all.assert_called_once()
+
+
+def test_predict_race_id_requires_model(runner, tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "activities.csv").write_text(
+        "Activity Type,Activity Date,Distance,Moving Time,Activity Name\n"
+        "Run,\"Jun 1, 2026\",5000,1200,Morning Run\n",
+        encoding="utf-8",
+    )
+    model_path = tmp_path / "missing-model.pkl"
+
+    result = runner.invoke(
+        main,
+        [
+            "predict",
+            "--data-dir",
+            str(data_dir),
+            "--model-path",
+            str(model_path),
+            "--race-id",
+            "146508",
+        ],
+    )
+    assert result.exit_code != 0
+    assert "train --population" in result.output
 
 
 def test_predict_requires_activities_csv(runner, tmp_path):

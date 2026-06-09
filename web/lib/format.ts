@@ -22,3 +22,26 @@ export function formatPace(minPerMile: number): string {
   }
   return `${adjMinutes}:${String(seconds).padStart(2, "0")}/mi`;
 }
+
+export function formatInterval(lowSec: number, highSec: number): string {
+  return `${formatTime(lowSec)} – ${formatTime(highSec)}`;
+}
+
+export function formatRaceDate(value: string | null | undefined): string {
+  if (!value) return "Date TBD";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split("-");
+    return `${month}/${day}/${year}`;
+  }
+  return value;
+}
+
+export function formatTempF(tempF: number): string {
+  const rounded = Math.round(tempF * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
+}
+
+export function formatLocation(city?: string | null, state?: string | null): string {
+  if (city && state) return `${city}, ${state}`;
+  return city || state || "Location TBD";
+}

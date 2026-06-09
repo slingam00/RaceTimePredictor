@@ -26,16 +26,22 @@ def search_races(
     results_per_page: int = Query(default=25, ge=1, le=100),
     settings: Settings = Depends(get_settings),
 ) -> RaceSearchResponse:
+    reference = date.today()
+    effective_start = start_date if start_date is not None else reference
+    if effective_start < reference:
+        effective_start = reference
+
     client = RunSignupClient()
     try:
         result = client.search_races(
             name=q,
             city=city,
             state=state,
-            start_date=start_date,
+            start_date=effective_start,
             end_date=end_date,
             page=page,
             results_per_page=results_per_page,
+            today=reference,
         )
     except RunSignupError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc

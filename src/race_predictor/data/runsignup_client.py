@@ -6,7 +6,7 @@ import json
 import os
 import time
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Callable, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -114,6 +114,7 @@ class RunSignupClient:
         end_date: date | str | None = None,
         page: int = 1,
         results_per_page: int = 25,
+        today: date | None = None,
     ) -> RunSignupSearchResult:
         """Search upcoming races via GET /rest/races."""
         if page < 1:
@@ -121,14 +122,22 @@ class RunSignupClient:
         if results_per_page < 1 or results_per_page > 1000:
             raise ValueError("results_per_page must be between 1 and 1000")
 
+        reference = today or date.today()
         if start_date is None:
-            start_date = date.today()
+            min_date = reference
+        else:
+            parsed_start = _parse_runsignup_date(str(start_date))
+            min_date = parsed_start if parsed_start is not None else reference
+        if min_date < reference:
+            min_date = reference
+
         params: dict[str, str | int] = {
             "format": "json",
             "events": "T",
+            "search_start_date_only": "T",
             "page": page,
             "results_per_page": results_per_page,
-            "start_date": _format_api_date(start_date),
+            "start_date": _format_api_date(min_date),
         }
         if name:
             params["name"] = name.strip()
@@ -140,7 +149,10 @@ class RunSignupClient:
             params["end_date"] = _format_api_date(end_date)
 
         payload = self._get("/races", params)
-        races = _parse_search_results(payload)
+        races = _filter_upcoming_summaries(
+            _parse_search_results(payload),
+            min_date=min_date,
+        )
         return RunSignupSearchResult(
             races=races,
             page=page,
@@ -294,6 +306,34 @@ def _format_api_date(value: date | str) -> str:
     if isinstance(value, date):
         return value.isoformat()
     return str(value).strip()
+
+
+def _parse_runsignup_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%m/%d/%Y"):
+        try:
+            return datetime.strptime(value[:19], fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _upcoming_race_date(summary: RunSignupRaceSummary) -> date | None:
+    return _parse_runsignup_date(summary.next_date)
+
+
+def _filter_upcoming_summaries(
+    races: list[RunSignupRaceSummary],
+    *,
+    min_date: date,
+) -> list[RunSignupRaceSummary]:
+    upcoming: list[RunSignupRaceSummary] = []
+    for race in races:
+        race_date = _upcoming_race_date(race)
+        if race_date is not None and race_date >= min_date:
+            upcoming.append(race)
+    return upcoming
 
 
 def _parse_events(events_raw: Any) -> list[RunSignupEvent]:

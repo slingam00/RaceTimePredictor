@@ -1,152 +1,158 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-import { predictRaces, type PredictResponse } from "@/lib/api";
-import { formatPace, formatTime } from "@/lib/format";
+import { searchRaces, type RaceSummary } from "@/lib/api";
+import { formatLocation, formatRaceDate } from "@/lib/format";
+import { ManualConditionsForm } from "@/components/ManualConditionsForm";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export default function HomePage() {
-  const [elevGainFt, setElevGainFt] = useState("0");
-  const [elevLossFt, setElevLossFt] = useState("0");
-  const [tempF, setTempF] = useState("72");
-  const [asOf, setAsOf] = useState("");
+  const [query, setQuery] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [races, setRaces] = useState<RaceSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<PredictResponse | null>(null);
+  const [showManual, setShowManual] = useState(false);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const body = {
-        elev_gain_ft: Number(elevGainFt),
-        elev_loss_ft: Number(elevLossFt),
-        temp_f: tempF.trim() ? Number(tempF) : undefined,
-        as_of: asOf.trim() || undefined,
-      };
-      const response = await predictRaces(body);
-      setResult(response);
-    } catch (err) {
-      setResult(null);
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setRaces([]);
+      setError(null);
+      return;
     }
-  }
+
+    const handle = window.setTimeout(async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await searchRaces({
+          q: trimmed,
+          city: city.trim() || undefined,
+          state: state.trim() || undefined,
+          start_date: new Date().toISOString().slice(0, 10),
+          results_per_page: 20,
+        });
+        setRaces(response.races);
+      } catch (err) {
+        setRaces([]);
+        setError(err instanceof Error ? err.message : "Search failed");
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => window.clearTimeout(handle);
+  }, [query, city, state]);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-12">
       <header className="space-y-2">
         <p className="text-sm uppercase tracking-wide text-zinc-400">Race Time Predictor</p>
-        <h1 className="text-3xl font-semibold">Manual race conditions</h1>
+        <h1 className="text-3xl font-semibold">Find your upcoming race</h1>
         <p className="text-zinc-400">
-          Enter course elevation and temperature. Requires FastAPI on{" "}
-          <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-200">
-            {process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}
-          </code>
-          .
+          Search RunSignup races, review course conditions, and get predictions for 5K through
+          marathon. API:{" "}
+          <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-200">{API_BASE}</code>
         </p>
       </header>
 
-      <form
-        onSubmit={onSubmit}
-        className="grid gap-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 md:grid-cols-2"
-      >
+      <section className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <label className="flex flex-col gap-1 text-sm">
-          Elevation gain — climb (ft)
+          Search races
           <input
-            type="number"
-            min="0"
-            step="1"
-            required
-            value={elevGainFt}
-            onChange={(e) => setElevGainFt(e.target.value)}
+            type="search"
+            placeholder="e.g. Florida marathon, Boston 5K"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
+            autoFocus
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Elevation loss — descent (ft)
-          <input
-            type="number"
-            min="0"
-            step="1"
-            required
-            value={elevLossFt}
-            onChange={(e) => setElevLossFt(e.target.value)}
-            className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-sm">
-          Temperature (°F)
-          <input
-            type="number"
-            min="-20"
-            max="120"
-            step="1"
-            value={tempF}
-            onChange={(e) => setTempF(e.target.value)}
-            className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-sm">
-          As-of date (optional)
-          <input
-            type="date"
-            value={asOf}
-            onChange={(e) => setAsOf(e.target.value)}
-            className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
-          />
-        </label>
-
-        <div className="md:col-span-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
-          >
-            {loading ? "Predicting…" : "Predict all distances"}
-          </button>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="flex flex-col gap-1 text-sm">
+            City (optional)
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            State (optional)
+            <input
+              type="text"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
+            />
+          </label>
         </div>
-      </form>
 
-      {error && (
-        <div className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-red-200">
-          {error}
-        </div>
-      )}
+        {query.trim().length < 2 && (
+          <p className="text-sm text-zinc-500">Type at least 2 characters to search.</p>
+        )}
+        {loading && <p className="text-sm text-zinc-400">Searching…</p>}
+        {error && (
+          <div className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-red-200">
+            {error}
+          </div>
+        )}
+      </section>
 
-      {result && (
-        <section className="space-y-4">
-          <div className="text-sm text-zinc-400">
-            Predictions as of {result.as_of} · {result.temp_f}°F ({result.temp_source})
-          </div>
-          <div className="overflow-x-auto rounded-xl border border-zinc-800">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-zinc-900/80 text-zinc-400">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Distance</th>
-                  <th className="px-4 py-3 font-medium">Predicted Time</th>
-                  <th className="px-4 py-3 font-medium">Pace</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.predictions.map((row) => (
-                  <tr key={row.distance_label} className="border-t border-zinc-800">
-                    <td className="px-4 py-3">{row.distance_label}</td>
-                    <td className="px-4 py-3">{formatTime(row.predicted_time_sec)}</td>
-                    <td className="px-4 py-3">{formatPace(row.pace_min_per_mi)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {races.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-medium">Upcoming races</h2>
+          <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800">
+            {races.map((race) => (
+              <li key={race.race_id}>
+                <Link
+                  href={`/races/${race.race_id}`}
+                  className="block px-4 py-4 transition hover:bg-zinc-900/60"
+                >
+                  <div className="font-medium text-zinc-100">{race.name}</div>
+                  <div className="mt-1 text-sm text-zinc-400">
+                    {formatLocation(race.city, race.state)} · {formatRaceDate(race.next_date)}
+                  </div>
+                  {race.offered_distances.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {race.offered_distances.map((label) => (
+                        <span
+                          key={label}
+                          className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-300"
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
+
+      <section className="border-t border-zinc-800 pt-8">
+        <button
+          type="button"
+          onClick={() => setShowManual((value) => !value)}
+          className="text-sm text-zinc-400 underline-offset-4 hover:text-zinc-200 hover:underline"
+        >
+          {showManual ? "Hide manual entry" : "Enter course conditions manually"}
+        </button>
+        {showManual && (
+          <div className="mt-6">
+            <ManualConditionsForm />
+          </div>
+        )}
+      </section>
     </main>
   );
 }

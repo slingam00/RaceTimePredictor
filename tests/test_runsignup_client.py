@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 
 from race_predictor.data.runsignup_client import (
@@ -93,10 +94,11 @@ def test_search_races_builds_query_and_parses():
         name="marathon",
         city="Port Huron",
         state="MI",
-        start_date="2026-06-01",
+        start_date="2026-01-01",
         end_date="2026-12-31",
         page=2,
         results_per_page=10,
+        today=date(2026, 1, 1),
     )
     assert result.page == 2
     assert result.results_per_page == 10
@@ -105,11 +107,54 @@ def test_search_races_builds_query_and_parses():
     assert "name=marathon" in calls[0]
     assert "city=Port+Huron" in calls[0]
     assert "state=MI" in calls[0]
-    assert "start_date=2026-06-01" in calls[0]
+    assert "start_date=2026-01-01" in calls[0]
     assert "end_date=2026-12-31" in calls[0]
     assert "events=T" in calls[0]
+    assert "search_start_date_only=T" in calls[0]
     assert "page=2" in calls[0]
     assert "results_per_page=10" in calls[0]
+
+
+def test_search_races_filters_past_next_date():
+    payload = {
+        "races": [
+            {
+                "race": {
+                    "race_id": 1,
+                    "name": "Past Marathon",
+                    "next_date": "01/15/2025",
+                    "last_date": "01/15/2025",
+                    "address": {"city": "A", "state": "MA"},
+                    "events": [],
+                }
+            },
+            {
+                "race": {
+                    "race_id": 2,
+                    "name": "Future Marathon",
+                    "next_date": "09/14/2026",
+                    "last_date": "09/14/2025",
+                    "address": {"city": "B", "state": "MA"},
+                    "events": [],
+                }
+            },
+        ]
+    }
+
+    def fetch(url: str, headers: dict | None = None) -> dict:
+        return payload
+
+    client = RunSignupClient(
+        credentials=RunSignupCredentials(api_key="k", api_secret="s"),
+        fetch_json=fetch,
+    )
+    result = client.search_races(
+        name="marathon",
+        start_date="2026-06-08",
+        today=__import__("datetime").date(2026, 6, 8),
+    )
+    assert len(result.races) == 1
+    assert result.races[0].race_id == 2
 
 
 def test_get_race_future_events_only_passes_params():
