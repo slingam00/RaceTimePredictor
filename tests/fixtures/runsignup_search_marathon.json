@@ -1,0 +1,59 @@
+{
+  "races": [
+    {
+      "race": {
+        "race_id": 146508,
+        "name": "Bridge to Brew Half Marathon and 5K",
+        "next_date": "08/09/2026",
+        "last_date": "08/10/2025",
+        "address": {
+          "city": "Port Huron",
+          "state": "MI"
+        },
+        "events": [
+          {
+            "event": {
+              "event_id": 1140658,
+              "name": "Half Marathon",
+              "distance": 13.1,
+              "distance_units": "M",
+              "start_time": "07:00:00"
+            }
+          },
+          {
+            "event": {
+              "event_id": 1140659,
+              "name": "5K",
+              "distance": 3.1,
+              "distance_units": "M",
+              "start_time": "07:30:00"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "race": {
+        "race_id": 72232,
+        "name": "Publix Florida Marathon",
+        "next_date": "02/01/2026",
+        "last_date": "02/02/2025",
+        "address": {
+          "city": "West Palm Beach",
+          "state": "FL"
+        },
+        "events": [
+          {
+            "event": {
+              "event_id": 900001,
+              "name": "Full Marathon",
+              "distance": 26.2,
+              "distance_units": "M",
+              "start_time": "06:00:00"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

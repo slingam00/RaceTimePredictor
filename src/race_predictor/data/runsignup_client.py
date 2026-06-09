@@ -1,4 +1,4 @@
-"""RunSignup REST API client for historical race detail and event results."""
+"""RunSignup REST API client for race search, detail, and event results."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import json
 import os
 import time
 from dataclasses import dataclass
+from datetime import date
 from typing import Any, Callable, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -36,6 +37,25 @@ class RunSignupEvent:
 
 
 @dataclass(frozen=True)
+class RunSignupRaceLink:
+    link_id: int | None
+    name: str | None
+    url: str | None
+    link_type: str | None
+
+
+@dataclass(frozen=True)
+class RunSignupRaceSummary:
+    race_id: int
+    name: str
+    city: str | None
+    state: str | None
+    next_date: str | None
+    last_date: str | None
+    events: list[RunSignupEvent]
+
+
+@dataclass(frozen=True)
 class RunSignupRace:
     race_id: int
     name: str
@@ -46,6 +66,14 @@ class RunSignupRace:
     next_date: str | None
     last_date: str | None
     events: list[RunSignupEvent]
+    race_links: tuple[RunSignupRaceLink, ...] = ()
+
+
+@dataclass(frozen=True)
+class RunSignupSearchResult:
+    races: list[RunSignupRaceSummary]
+    page: int
+    results_per_page: int
 
 
 @dataclass(frozen=True)
@@ -59,7 +87,7 @@ class RunSignupResult:
 
 
 class RunSignupClient:
-    """Thin client for RunSignup race detail and finisher results."""
+    """Thin client for RunSignup race search, detail, and finisher results."""
 
     def __init__(
         self,
@@ -76,17 +104,68 @@ class RunSignupClient:
         self._cache: dict[str, tuple[float, dict]] = {}
         self._last_request_at = 0.0
 
+    def search_races(
+        self,
+        *,
+        name: str | None = None,
+        city: str | None = None,
+        state: str | None = None,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
+        page: int = 1,
+        results_per_page: int = 25,
+    ) -> RunSignupSearchResult:
+        """Search upcoming races via GET /rest/races."""
+        if page < 1:
+            raise ValueError("page must be >= 1")
+        if results_per_page < 1 or results_per_page > 1000:
+            raise ValueError("results_per_page must be between 1 and 1000")
+
+        if start_date is None:
+            start_date = date.today()
+        params: dict[str, str | int] = {
+            "format": "json",
+            "events": "T",
+            "page": page,
+            "results_per_page": results_per_page,
+            "start_date": _format_api_date(start_date),
+        }
+        if name:
+            params["name"] = name.strip()
+        if city:
+            params["city"] = city.strip()
+        if state:
+            params["state"] = state.strip()
+        if end_date is not None:
+            params["end_date"] = _format_api_date(end_date)
+
+        payload = self._get("/races", params)
+        races = _parse_search_results(payload)
+        return RunSignupSearchResult(
+            races=races,
+            page=page,
+            results_per_page=results_per_page,
+        )
+
     def get_race(
         self,
         race_id: int,
         *,
         most_recent_events_only: bool = True,
+        future_events_only: bool = False,
+        race_links: bool = False,
     ) -> RunSignupRace:
-        params = {
+        params: dict[str, str] = {
             "format": "json",
-            "most_recent_events_only": "T" if most_recent_events_only else "F",
             "include_event_days": "T",
         }
+        if future_events_only:
+            params["future_events_only"] = "T"
+        else:
+            params["most_recent_events_only"] = "T" if most_recent_events_only else "F"
+        if race_links:
+            params["race_links"] = "T"
+
         payload = self._get(f"/race/{race_id}", params)
         return _parse_race(payload, race_id)
 
@@ -211,12 +290,15 @@ def _fetch_json(url: str, headers: Optional[dict[str, str]] = None) -> dict:
         return json.load(response)
 
 
-def _parse_race(payload: dict, race_id: int) -> RunSignupRace:
-    race = _unwrap_race(payload)
-    address = race.get("address") or {}
-    events_raw = race.get("events") or []
+def _format_api_date(value: date | str) -> str:
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value).strip()
+
+
+def _parse_events(events_raw: Any) -> list[RunSignupEvent]:
     if not isinstance(events_raw, list):
-        events_raw = []
+        return []
 
     events: list[RunSignupEvent] = []
     for item in events_raw:
@@ -237,6 +319,66 @@ def _parse_race(payload: dict, race_id: int) -> RunSignupRace:
                 start_time=_optional_str(event.get("start_time")),
             )
         )
+    return events
+
+
+def _parse_race_links(race: dict) -> tuple[RunSignupRaceLink, ...]:
+    links: list[RunSignupRaceLink] = []
+    for item in race.get("race_links") or []:
+        if not isinstance(item, dict):
+            continue
+        link = item.get("link") if "link" in item else item
+        if not isinstance(link, dict):
+            continue
+        links.append(
+            RunSignupRaceLink(
+                link_id=_to_int(link.get("link_id")),
+                name=_optional_str(link.get("name") or link.get("link_name")),
+                url=_optional_str(link.get("url")),
+                link_type=_optional_str(link.get("link_type")),
+            )
+        )
+    return tuple(links)
+
+
+def _parse_race_summary(race: dict) -> RunSignupRaceSummary | None:
+    race_id = _to_int(race.get("race_id"))
+    if race_id is None:
+        return None
+    address = race.get("address") or {}
+    return RunSignupRaceSummary(
+        race_id=race_id,
+        name=str(race.get("name") or "").strip(),
+        city=_optional_str(address.get("city")),
+        state=_optional_str(address.get("state")),
+        next_date=_optional_str(race.get("next_date")),
+        last_date=_optional_str(race.get("last_date")),
+        events=_parse_events(race.get("events")),
+    )
+
+
+def _parse_search_results(payload: dict) -> list[RunSignupRaceSummary]:
+    races_raw = payload.get("races") or []
+    if not isinstance(races_raw, list):
+        return []
+
+    summaries: list[RunSignupRaceSummary] = []
+    for item in races_raw:
+        if not isinstance(item, dict):
+            continue
+        race = item.get("race") if "race" in item else item
+        if not isinstance(race, dict):
+            continue
+        summary = _parse_race_summary(race)
+        if summary is not None:
+            summaries.append(summary)
+    return summaries
+
+
+def _parse_race(payload: dict, race_id: int) -> RunSignupRace:
+    race = _unwrap_race(payload)
+    address = race.get("address") or {}
+    events = _parse_events(race.get("events"))
 
     return RunSignupRace(
         race_id=race_id,
@@ -248,6 +390,7 @@ def _parse_race(payload: dict, race_id: int) -> RunSignupRace:
         next_date=_optional_str(race.get("next_date")),
         last_date=_optional_str(race.get("last_date")),
         events=events,
+        race_links=_parse_race_links(race),
     )
 
 

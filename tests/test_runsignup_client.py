@@ -11,6 +11,7 @@ from race_predictor.data.runsignup_client import (
     _parse_clock_time,
     _parse_race,
     _parse_results,
+    _parse_search_results,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -53,6 +54,80 @@ def test_parse_results_individual_sets_fixture():
     assert len(results) == 2
     assert results[0].registration_id == 31258816
     assert results[0].clock_time_sec == 20 * 60 + 58.6
+
+
+def test_parse_search_results_fixture():
+    payload = json.loads((FIXTURES / "runsignup_search_marathon.json").read_text())
+    races = _parse_search_results(payload)
+    assert len(races) == 2
+    assert races[0].race_id == 146508
+    assert races[0].city == "Port Huron"
+    assert races[0].state == "MI"
+    assert len(races[0].events) == 2
+    assert races[1].race_id == 72232
+    assert races[1].events[0].name == "Full Marathon"
+
+
+def test_parse_race_future_links_fixture():
+    payload = json.loads((FIXTURES / "runsignup_race_future_links.json").read_text())
+    race = _parse_race(payload, 146508)
+    assert race.next_date == "08/09/2026"
+    assert len(race.events) == 1
+    assert len(race.race_links) == 1
+    assert race.race_links[0].url == "https://example.com/course.gpx"
+    assert race.race_links[0].link_type == "gpx"
+
+
+def test_search_races_builds_query_and_parses():
+    calls: list[str] = []
+
+    def fetch(url: str, headers: dict | None = None) -> dict:
+        calls.append(url)
+        return json.loads((FIXTURES / "runsignup_search_marathon.json").read_text())
+
+    client = RunSignupClient(
+        credentials=RunSignupCredentials(api_key="k", api_secret="s"),
+        fetch_json=fetch,
+    )
+    result = client.search_races(
+        name="marathon",
+        city="Port Huron",
+        state="MI",
+        start_date="2026-06-01",
+        end_date="2026-12-31",
+        page=2,
+        results_per_page=10,
+    )
+    assert result.page == 2
+    assert result.results_per_page == 10
+    assert len(result.races) == 2
+    assert result.races[0].name.startswith("Bridge to Brew")
+    assert "name=marathon" in calls[0]
+    assert "city=Port+Huron" in calls[0]
+    assert "state=MI" in calls[0]
+    assert "start_date=2026-06-01" in calls[0]
+    assert "end_date=2026-12-31" in calls[0]
+    assert "events=T" in calls[0]
+    assert "page=2" in calls[0]
+    assert "results_per_page=10" in calls[0]
+
+
+def test_get_race_future_events_only_passes_params():
+    calls: list[str] = []
+
+    def fetch(url: str, headers: dict | None = None) -> dict:
+        calls.append(url)
+        return json.loads((FIXTURES / "runsignup_race_future_links.json").read_text())
+
+    client = RunSignupClient(
+        credentials=RunSignupCredentials(api_key="k", api_secret="s"),
+        fetch_json=fetch,
+    )
+    race = client.get_race(146508, future_events_only=True, race_links=True)
+    assert race.events[0].event_id == 1140658
+    assert "future_events_only=T" in calls[0]
+    assert "race_links=T" in calls[0]
+    assert "most_recent_events_only" not in calls[0]
 
 
 def test_client_uses_cache():
