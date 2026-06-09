@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.config import get_settings
 from api.routes.health import router as health_router
 from api.routes.predict import router as predict_router
+from api.routes.races import router as races_router
 
 settings = get_settings()
 
@@ -20,4 +21,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(health_router)
+app.include_router(races_router)
 app.include_router(predict_router)

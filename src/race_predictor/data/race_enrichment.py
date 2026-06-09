@@ -157,7 +157,7 @@ def _map_offered_events(events: list[RunSignupEvent]) -> list[EnrichedRaceEvent]
     for event in events:
         if "virtual" in event.name.lower():
             continue
-        label = _distance_label_for_event(event)
+        label = distance_label_for_event(event)
         if label is None or label in seen_labels:
             continue
         distance_mi = raw_event_distance_mi(event)
@@ -173,13 +173,27 @@ def _map_offered_events(events: list[RunSignupEvent]) -> list[EnrichedRaceEvent]
     return offered
 
 
-def _distance_label_for_event(event: RunSignupEvent) -> str | None:
+def distance_label_for_event(event: RunSignupEvent) -> str | None:
     distance_mi = raw_event_distance_mi(event)
     if distance_mi is not None:
         for label, (lo, hi) in DISTANCE_BUCKETS_MI.items():
             if lo <= distance_mi <= hi:
                 return label
     return _distance_label_from_name(event.name)
+
+
+def offered_distance_labels(events: list[RunSignupEvent]) -> list[str]:
+    labels: list[str] = []
+    seen: set[str] = set()
+    for event in events:
+        if "virtual" in event.name.lower():
+            continue
+        label = distance_label_for_event(event)
+        if label is None or label in seen:
+            continue
+        labels.append(label)
+        seen.add(label)
+    return labels
 
 
 def _distance_label_from_name(name: str) -> str | None:
