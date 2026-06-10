@@ -11,7 +11,9 @@ type ManualConditionsFormProps = {
   defaultElevLossFt?: number | null;
   defaultTempF?: number | null;
   defaultAsOf?: string;
+  minAsOf?: string;
   maxAsOf?: string;
+  mode?: "standalone" | "override";
   title?: string;
 };
 
@@ -21,8 +23,10 @@ export function ManualConditionsForm({
   defaultElevLossFt,
   defaultTempF,
   defaultAsOf = "",
+  minAsOf,
   maxAsOf,
-  title = "Manual course conditions",
+  mode = raceId != null ? "override" : "standalone",
+  title,
 }: ManualConditionsFormProps) {
   const [elevGainFt, setElevGainFt] = useState(
     defaultElevGainFt != null ? String(defaultElevGainFt) : "0"
@@ -37,6 +41,14 @@ export function ManualConditionsForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictResponse | null>(null);
+
+  const heading =
+    title ??
+    (mode === "override" ? "Override course conditions" : "Enter course conditions");
+  const description =
+    mode === "override"
+      ? "Adjust elevation or temperature when course data is incomplete."
+      : "Enter elevation, temperature, and race date to predict all four distances.";
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,15 +77,15 @@ export function ManualConditionsForm({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-medium">{title}</h2>
-        <p className="text-sm text-zinc-400">
-          Override elevation or temperature when course data is incomplete.
-        </p>
+        <h2 className="text-lg font-medium">{heading}</h2>
+        <p className="text-sm text-zinc-400">{description}</p>
       </div>
 
       <form
         onSubmit={onSubmit}
-        className="grid gap-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 md:grid-cols-2"
+        className={`grid gap-4 md:grid-cols-2 ${
+          mode === "standalone" ? "" : "rounded-xl border border-zinc-800 bg-zinc-900/50 p-6"
+        }`}
       >
         <label className="flex flex-col gap-1 text-sm">
           Elevation gain (ft)
@@ -115,10 +127,11 @@ export function ManualConditionsForm({
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
-          As-of date
+          Race date
           <input
             type="date"
             value={asOf}
+            min={minAsOf}
             max={maxAsOf}
             onChange={(e) => setAsOf(e.target.value)}
             className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"

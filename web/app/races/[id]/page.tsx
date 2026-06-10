@@ -109,7 +109,7 @@ export default function RaceDetailPage() {
     return (
       <main className="mx-auto max-w-4xl space-y-4 px-6 py-12">
         <Link href="/" className="text-sm text-zinc-400 hover:text-zinc-200">
-          ← Back to search
+          ← Back to home
         </Link>
         <div className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-red-200">
           {error ?? "Race not found"}
@@ -127,7 +127,7 @@ export default function RaceDetailPage() {
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-12">
       <div>
         <Link href="/" className="text-sm text-zinc-400 hover:text-zinc-200">
-          ← Back to search
+          ← Back to home
         </Link>
       </div>
 
@@ -220,8 +220,9 @@ export default function RaceDetailPage() {
               defaultElevLossFt={race.elev_loss_ft}
               defaultTempF={race.temp_f}
               defaultAsOf={race.race_date}
+              minAsOf={new Date().toISOString().slice(0, 10)}
               maxAsOf={maxPredictionDate ?? undefined}
-              title="Override course conditions"
+              mode="override"
             />
           </div>
         )}
