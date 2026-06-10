@@ -11,6 +11,7 @@ type ManualConditionsFormProps = {
   defaultElevLossFt?: number | null;
   defaultTempF?: number | null;
   defaultAsOf?: string;
+  maxAsOf?: string;
   title?: string;
 };
 
@@ -20,6 +21,7 @@ export function ManualConditionsForm({
   defaultElevLossFt,
   defaultTempF,
   defaultAsOf = "",
+  maxAsOf,
   title = "Manual course conditions",
 }: ManualConditionsFormProps) {
   const [elevGainFt, setElevGainFt] = useState(
@@ -117,6 +119,7 @@ export function ManualConditionsForm({
           <input
             type="date"
             value={asOf}
+            max={maxAsOf}
             onChange={(e) => setAsOf(e.target.value)}
             className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2"
           />

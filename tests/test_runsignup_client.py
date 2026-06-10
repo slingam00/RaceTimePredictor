@@ -157,6 +157,49 @@ def test_search_races_filters_past_next_date():
     assert result.races[0].race_id == 2
 
 
+def test_search_races_filters_beyond_max_date():
+    payload = {
+        "races": [
+            {
+                "race": {
+                    "race_id": 1,
+                    "name": "Near Marathon",
+                    "next_date": "07/15/2026",
+                    "address": {"city": "A", "state": "MA"},
+                    "events": [],
+                }
+            },
+            {
+                "race": {
+                    "race_id": 2,
+                    "name": "Far Marathon",
+                    "next_date": "09/14/2026",
+                    "address": {"city": "B", "state": "MA"},
+                    "events": [],
+                }
+            },
+        ]
+    }
+    calls: list[str] = []
+
+    def fetch(url: str, headers: dict | None = None) -> dict:
+        calls.append(url)
+        return payload
+
+    client = RunSignupClient(
+        credentials=RunSignupCredentials(api_key="k", api_secret="s"),
+        fetch_json=fetch,
+    )
+    result = client.search_races(
+        start_date="2026-06-08",
+        max_date="2026-08-24",
+        today=date(2026, 6, 8),
+    )
+    assert len(result.races) == 1
+    assert result.races[0].race_id == 1
+    assert "end_date=2026-08-24" in calls[0]
+
+
 def test_get_race_future_events_only_passes_params():
     calls: list[str] = []
 

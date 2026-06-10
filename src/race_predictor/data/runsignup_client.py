@@ -112,6 +112,7 @@ class RunSignupClient:
         state: str | None = None,
         start_date: date | str | None = None,
         end_date: date | str | None = None,
+        max_date: date | str | None = None,
         page: int = 1,
         results_per_page: int = 25,
         today: date | None = None,
@@ -145,13 +146,22 @@ class RunSignupClient:
             params["city"] = city.strip()
         if state:
             params["state"] = state.strip()
-        if end_date is not None:
-            params["end_date"] = _format_api_date(end_date)
+
+        effective_end = _coerce_date(end_date)
+        parsed_max = _coerce_date(max_date)
+        if parsed_max is not None:
+            if effective_end is None:
+                effective_end = parsed_max
+            elif effective_end > parsed_max:
+                effective_end = parsed_max
+        if effective_end is not None:
+            params["end_date"] = _format_api_date(effective_end)
 
         payload = self._get("/races", params)
-        races = _filter_upcoming_summaries(
+        races = _filter_race_summaries_by_date(
             _parse_search_results(payload),
             min_date=min_date,
+            max_date=effective_end,
         )
         return RunSignupSearchResult(
             races=races,
@@ -319,21 +329,35 @@ def _parse_runsignup_date(value: str | None) -> date | None:
     return None
 
 
+def _coerce_date(value: date | str | None) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, date):
+        return value
+    return _parse_runsignup_date(str(value))
+
+
 def _upcoming_race_date(summary: RunSignupRaceSummary) -> date | None:
     return _parse_runsignup_date(summary.next_date)
 
 
-def _filter_upcoming_summaries(
+def _filter_race_summaries_by_date(
     races: list[RunSignupRaceSummary],
     *,
     min_date: date,
+    max_date: date | None = None,
 ) -> list[RunSignupRaceSummary]:
-    upcoming: list[RunSignupRaceSummary] = []
+    filtered: list[RunSignupRaceSummary] = []
     for race in races:
         race_date = _upcoming_race_date(race)
-        if race_date is not None and race_date >= min_date:
-            upcoming.append(race)
-    return upcoming
+        if race_date is None:
+            continue
+        if race_date < min_date:
+            continue
+        if max_date is not None and race_date > max_date:
+            continue
+        filtered.append(race)
+    return filtered
 
 
 def _parse_events(events_raw: Any) -> list[RunSignupEvent]:

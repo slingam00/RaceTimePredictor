@@ -162,7 +162,7 @@ race-predictor predict --elev-gain-ft 200 --elev-loss-ft 200 --temp-f 55
 
 `--race-id` fetches race metadata from RunSignup, resolves elevation (bundled GPX → remote GPX link → `catalog/overrides.json`), and looks up race-day temperature via Open-Meteo. Results include 80% prediction intervals and per-distance confidence scores.
 
-Search only returns **upcoming races** (today onward). Past races are excluded at the API, CLI enrichment, and web UI layers.
+Search only returns races within your **training lookback window** (12 weeks after your most recent run). Past races and races beyond that horizon are excluded. The CLI and web UI show: *Predictions can only be made up until YYYY-MM-DD.*
 
 ### API
 

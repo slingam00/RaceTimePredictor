@@ -38,6 +38,10 @@ from race_predictor.data.runsignup_corpus import (
 from race_predictor.evaluate.backtest import backtest_to_dict, run_backtest
 from race_predictor.evaluate.benchmark import benchmark_to_dict, run_benchmark
 from race_predictor.formatting import format_pace, format_time
+from race_predictor.features.prediction_horizon import (
+    format_prediction_horizon_message,
+    max_prediction_date,
+)
 from race_predictor.models.predictor import (
     DEFAULT_MODEL_PATH,
     load_model,
@@ -378,6 +382,8 @@ def predict(
     if not runs:
         raise click.ClickException(f"No runs found in {csv_path}")
 
+    horizon = max_prediction_date(runs)
+
     model_path_obj = Path(model_path)
     if not model_path_obj.exists():
         if race_id is not None:
@@ -436,11 +442,12 @@ def predict(
         )
     _validate_race_conditions(elev_gain_ft, elev_loss_ft, temp_f)
 
-    as_of_dt = (
-        datetime.combine(as_of_date, datetime.min.time())
-        if as_of_date is not None
-        else runs[-1].date
-    )
+    if as_of_date is None:
+        as_of_date = runs[-1].date.date()
+    if horizon is not None and as_of_date > horizon:
+        raise click.ClickException(format_prediction_horizon_message(horizon))
+
+    as_of_dt = datetime.combine(as_of_date, datetime.min.time())
     if temp_f is None:
         temp_f = model.default_temp_f
 
@@ -471,6 +478,9 @@ def predict(
         raise click.ClickException(
             "Could not produce predictions — insufficient training data in the lookback window."
         )
+
+    if horizon is not None:
+        click.echo(format_prediction_horizon_message(horizon))
 
     _emit_predictions(
         race_name=race_name,

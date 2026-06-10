@@ -139,8 +139,42 @@ def test_predict_by_race_id(mock_load_model, mock_enrich, mock_predict_all, runn
     assert "Bridge to Brew" in result.output
     assert "5K" in result.output
     assert "82" in result.output
+    assert "Predictions can only be made up until" in result.output
     mock_enrich.assert_called_once()
     mock_predict_all.assert_called_once()
+
+
+@patch("race_predictor.cli.load_model")
+def test_predict_rejects_beyond_horizon(mock_load_model, runner, tmp_path):
+    mock_load_model.return_value = type("Model", (), {"default_temp_f": 60.0})()
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "activities.csv").write_text(
+        "Activity Type,Activity Date,Distance,Moving Time,Activity Name\n"
+        "Run,\"Jun 1, 2026\",5000,1200,Morning Run\n",
+        encoding="utf-8",
+    )
+    model_path = tmp_path / "model.pkl"
+    model_path.write_bytes(b"placeholder")
+
+    result = runner.invoke(
+        main,
+        [
+            "predict",
+            "--data-dir",
+            str(data_dir),
+            "--model-path",
+            str(model_path),
+            "--elev-gain-ft",
+            "0",
+            "--elev-loss-ft",
+            "0",
+            "--as-of",
+            "2026-12-01",
+        ],
+    )
+    assert result.exit_code != 0
+    assert "Predictions can only be made up until 2026-08-24." in result.output
 
 
 def test_predict_race_id_requires_model(runner, tmp_path):

@@ -8,11 +8,34 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.config import Settings, get_settings
-from api.schemas import RaceDetail, RaceEventDetail, RaceSearchResponse, RaceSummary
+from api.horizon import load_prediction_horizon
+from api.schemas import (
+    PredictionHorizonResponse,
+    RaceDetail,
+    RaceEventDetail,
+    RaceSearchResponse,
+    RaceSummary,
+)
 from race_predictor.data.race_enrichment import EnrichedRace, enrich_race, offered_distance_labels
 from race_predictor.data.runsignup_client import RunSignupClient, RunSignupError, RunSignupRaceSummary
 
 router = APIRouter(prefix="/api", tags=["races"])
+
+
+@router.get("/prediction-horizon", response_model=PredictionHorizonResponse)
+def get_prediction_horizon(
+    settings: Settings = Depends(get_settings),
+) -> PredictionHorizonResponse:
+    horizon = load_prediction_horizon(settings)
+    if horizon.max_prediction_date is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No activities.csv found in {settings.data_dir}/",
+        )
+    return PredictionHorizonResponse(
+        max_prediction_date=horizon.max_prediction_date,
+        prediction_horizon_message=horizon.message,
+    )
 
 
 @router.get("/races/search", response_model=RaceSearchResponse)
@@ -31,6 +54,18 @@ def search_races(
     if effective_start < reference:
         effective_start = reference
 
+    horizon = load_prediction_horizon(settings)
+    max_date = horizon.max_prediction_date
+
+    if max_date is not None and effective_start > max_date:
+        return RaceSearchResponse(
+            races=[],
+            page=page,
+            results_per_page=results_per_page,
+            max_prediction_date=max_date,
+            prediction_horizon_message=horizon.message,
+        )
+
     client = RunSignupClient()
     try:
         result = client.search_races(
@@ -39,6 +74,7 @@ def search_races(
             state=state,
             start_date=effective_start,
             end_date=end_date,
+            max_date=max_date,
             page=page,
             results_per_page=results_per_page,
             today=reference,
@@ -50,6 +86,8 @@ def search_races(
         races=[_summary_from_search(race) for race in result.races],
         page=result.page,
         results_per_page=result.results_per_page,
+        max_prediction_date=max_date,
+        prediction_horizon_message=horizon.message,
     )
 
 

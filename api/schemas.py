@@ -27,6 +27,13 @@ class RaceSearchResponse(BaseModel):
     races: list[RaceSummary]
     page: int
     results_per_page: int
+    max_prediction_date: Optional[date] = None
+    prediction_horizon_message: Optional[str] = None
+
+
+class PredictionHorizonResponse(BaseModel):
+    max_prediction_date: Optional[date] = None
+    prediction_horizon_message: Optional[str] = None
 
 
 class RaceEventDetail(BaseModel):
@@ -88,4 +95,6 @@ class PredictResponse(BaseModel):
     race_name: Optional[str] = None
     elev_source: Optional[str] = None
     warnings: list[str] = Field(default_factory=list)
+    max_prediction_date: Optional[date] = None
+    prediction_horizon_message: Optional[str] = None
     predictions: list[PredictionItem]

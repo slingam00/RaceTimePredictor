@@ -17,6 +17,8 @@ export type PredictResponse = {
   race_name?: string | null;
   elev_source?: string | null;
   warnings: string[];
+  max_prediction_date?: string | null;
+  prediction_horizon_message?: string | null;
   predictions: PredictionItem[];
 };
 
@@ -42,6 +44,13 @@ export type RaceSearchResponse = {
   races: RaceSummary[];
   page: number;
   results_per_page: number;
+  max_prediction_date?: string | null;
+  prediction_horizon_message?: string | null;
+};
+
+export type PredictionHorizonResponse = {
+  max_prediction_date?: string | null;
+  prediction_horizon_message?: string | null;
 };
 
 export type RaceEventDetail = {
@@ -98,6 +107,10 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw err;
   }
+}
+
+export async function getPredictionHorizon(): Promise<PredictionHorizonResponse> {
+  return apiFetch<PredictionHorizonResponse>("/api/prediction-horizon");
 }
 
 export async function searchRaces(

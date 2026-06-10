@@ -5,8 +5,15 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { ManualConditionsForm } from "@/components/ManualConditionsForm";
+import { PredictionHorizonNotice } from "@/components/PredictionHorizonNotice";
 import { PredictionsTable } from "@/components/PredictionsTable";
-import { getRace, predictRaces, type PredictResponse, type RaceDetail } from "@/lib/api";
+import {
+  getPredictionHorizon,
+  getRace,
+  predictRaces,
+  type PredictResponse,
+  type RaceDetail,
+} from "@/lib/api";
 import { formatLocation, formatRaceDate, formatTempF } from "@/lib/format";
 
 export default function RaceDetailPage() {
@@ -19,6 +26,20 @@ export default function RaceDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictResponse | null>(null);
   const [showManual, setShowManual] = useState(false);
+  const [horizonMessage, setHorizonMessage] = useState<string | null>(null);
+  const [maxPredictionDate, setMaxPredictionDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    getPredictionHorizon()
+      .then((horizon) => {
+        setHorizonMessage(horizon.prediction_horizon_message ?? null);
+        setMaxPredictionDate(horizon.max_prediction_date ?? null);
+      })
+      .catch(() => {
+        setHorizonMessage(null);
+        setMaxPredictionDate(null);
+      });
+  }, []);
 
   useEffect(() => {
     if (!Number.isFinite(raceId)) {
@@ -99,6 +120,8 @@ export default function RaceDetailPage() {
 
   const elevationKnown =
     race.elev_gain_ft != null && race.elev_loss_ft != null;
+  const outsideHorizon =
+    maxPredictionDate != null && race.race_date > maxPredictionDate;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-12">
@@ -143,6 +166,8 @@ export default function RaceDetailPage() {
         )}
       </header>
 
+      <PredictionHorizonNotice message={horizonMessage} />
+
       {race.warnings.length > 0 && (
         <ul className="space-y-1 rounded-lg border border-amber-900/60 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
           {race.warnings.map((warning) => (
@@ -151,7 +176,7 @@ export default function RaceDetailPage() {
         </ul>
       )}
 
-      {elevationKnown && (
+      {elevationKnown && !outsideHorizon && (
         <div>
           <button
             type="button"
@@ -162,6 +187,13 @@ export default function RaceDetailPage() {
             {predicting ? "Predicting…" : "Predict all distances"}
           </button>
         </div>
+      )}
+
+      {outsideHorizon && (
+        <p className="text-sm text-zinc-400">
+          This race is beyond your training lookback window and cannot be predicted
+          automatically.
+        </p>
       )}
 
       {error && (
@@ -188,6 +220,7 @@ export default function RaceDetailPage() {
               defaultElevLossFt={race.elev_loss_ft}
               defaultTempF={race.temp_f}
               defaultAsOf={race.race_date}
+              maxAsOf={maxPredictionDate ?? undefined}
               title="Override course conditions"
             />
           </div>

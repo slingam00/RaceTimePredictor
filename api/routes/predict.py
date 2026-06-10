@@ -7,8 +7,10 @@ from datetime import date, datetime
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.config import Settings, get_settings
+from api.horizon import load_prediction_horizon
 from api.schemas import PredictRequest, PredictResponse, PredictionItem
 from race_predictor.data.loader import load_runs
+from race_predictor.features.prediction_horizon import format_prediction_horizon_message
 from race_predictor.data.race_enrichment import enrich_race
 from race_predictor.data.runsignup_client import RunSignupClient, RunSignupError
 from race_predictor.models.predictor import load_model, predict_all, predict_race
@@ -38,6 +40,9 @@ def predict_races(
             detail="No trained model found. Run `race-predictor train --population` first.",
         )
     model = load_model(settings.model_path)
+
+    horizon = load_prediction_horizon(settings)
+    max_prediction = horizon.max_prediction_date
 
     race_id = body.race_id
     race_name: str | None = None
@@ -96,6 +101,16 @@ def predict_races(
             detail=f"as_of must be today ({date.today():%Y-%m-%d}) or a future date",
         )
 
+    if (
+        as_of_date is not None
+        and max_prediction is not None
+        and as_of_date > max_prediction
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=format_prediction_horizon_message(max_prediction),
+        )
+
     if elev_gain_ft is None or elev_loss_ft is None:
         raise HTTPException(
             status_code=400,
@@ -152,6 +167,8 @@ def predict_races(
         race_name=race_name,
         elev_source=elev_source,
         warnings=warnings,
+        max_prediction_date=max_prediction,
+        prediction_horizon_message=horizon.message,
         predictions=[
             PredictionItem(
                 distance_label=item.distance_label,

@@ -128,6 +128,18 @@ def test_search_races(mock_search, client):
     assert len(payload["races"]) == 1
     assert payload["races"][0]["race_id"] == 146508
     assert payload["races"][0]["offered_distances"] == ["Half", "5K"]
+    assert payload["max_prediction_date"] == "2026-08-24"
+    assert payload["prediction_horizon_message"] == (
+        "Predictions can only be made up until 2026-08-24."
+    )
+
+
+def test_prediction_horizon(client):
+    response = client.get("/api/prediction-horizon")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["max_prediction_date"] == "2026-08-24"
+    assert "Predictions can only be made up until" in payload["prediction_horizon_message"]
 
 
 @patch("api.routes.races.enrich_race")
@@ -268,6 +280,21 @@ def test_predict_rejects_past_as_of(mock_load_model, client):
     )
     assert response.status_code == 400
     assert "as_of must be today" in response.json()["detail"]
+
+
+@patch("api.routes.predict.load_model")
+def test_predict_rejects_beyond_horizon(mock_load_model, client):
+    mock_load_model.return_value = type("Model", (), {"default_temp_f": 60.0})()
+    response = client.post(
+        "/api/predict",
+        json={
+            "elev_gain_ft": 0,
+            "elev_loss_ft": 0,
+            "as_of": "2026-12-01",
+        },
+    )
+    assert response.status_code == 400
+    assert "Predictions can only be made up until 2026-08-24." in response.json()["detail"]
 
 
 def test_predict_rejects_negative_elevation(client):

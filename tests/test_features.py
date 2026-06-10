@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -11,6 +11,10 @@ from race_predictor.constants import WINDOW_DAYS_BY_DISTANCE
 from race_predictor.data.loader import load_runs
 from race_predictor.data.models import Run
 from race_predictor.features.fitness import compute_fitness_features
+from race_predictor.features.prediction_horizon import (
+    format_prediction_horizon_message,
+    max_prediction_date,
+)
 from race_predictor.features.window import runs_in_window, window_days_for
 
 DATA_CSV = Path("data/activities.csv")
@@ -65,6 +69,18 @@ def test_fitness_features_include_window_days():
     assert long["window_days"] == 84
     assert short["run_count"] <= long["run_count"]
     assert short["total_miles"] <= long["total_miles"]
+
+
+def test_max_prediction_date_uses_longest_lookback():
+    runs = [_sample_run(0, 4.0, 9.0)]
+    assert max_prediction_date(runs) == date(2026, 8, 24)
+
+
+def test_prediction_horizon_message():
+    assert (
+        format_prediction_horizon_message(date(2026, 8, 24))
+        == "Predictions can only be made up until 2026-08-24."
+    )
 
 
 def test_fitness_features_from_export():

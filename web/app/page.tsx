@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { searchRaces, type RaceSummary } from "@/lib/api";
+import { searchRaces, getPredictionHorizon, type RaceSummary } from "@/lib/api";
 import { formatLocation, formatRaceDate } from "@/lib/format";
 import { ManualConditionsForm } from "@/components/ManualConditionsForm";
+import { PredictionHorizonNotice } from "@/components/PredictionHorizonNotice";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -17,6 +18,20 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
+  const [horizonMessage, setHorizonMessage] = useState<string | null>(null);
+  const [maxPredictionDate, setMaxPredictionDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    getPredictionHorizon()
+      .then((horizon) => {
+        setHorizonMessage(horizon.prediction_horizon_message ?? null);
+        setMaxPredictionDate(horizon.max_prediction_date ?? null);
+      })
+      .catch(() => {
+        setHorizonMessage(null);
+        setMaxPredictionDate(null);
+      });
+  }, []);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -38,6 +53,9 @@ export default function HomePage() {
           results_per_page: 20,
         });
         setRaces(response.races);
+        if (response.prediction_horizon_message) {
+          setHorizonMessage(response.prediction_horizon_message);
+        }
       } catch (err) {
         setRaces([]);
         setError(err instanceof Error ? err.message : "Search failed");
@@ -60,6 +78,8 @@ export default function HomePage() {
           <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-200">{API_BASE}</code>
         </p>
       </header>
+
+      <PredictionHorizonNotice message={horizonMessage} />
 
       <section className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <label className="flex flex-col gap-1 text-sm">
@@ -149,7 +169,7 @@ export default function HomePage() {
         </button>
         {showManual && (
           <div className="mt-6">
-            <ManualConditionsForm />
+            <ManualConditionsForm maxAsOf={maxPredictionDate ?? undefined} />
           </div>
         )}
       </section>
